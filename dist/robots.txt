@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Sitemap: https://intend-a-little-more-you.jakejoke101.chatgpt.site/sitemap.xml
