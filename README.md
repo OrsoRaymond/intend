@@ -1,8 +1,8 @@
 # Intend
 
-**A little more you. A little every day.**
+**More life. Less noise.**
 
-Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Warm bone and cream, espresso at night, brass sunrise details, classic serif typography, and gentle motion.
+Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Bold, locally hosted Manrope typography, cream and ink foundations, lime and lilac accents, rounded controls, dimensional app previews, and gentle motion.
 
 ## Run
 
@@ -31,11 +31,11 @@ npm run check
 
 ## Working in mock version 1
 
-- First-open preview disclosure, optional setup, one question per screen.
+- First-open preview disclosure, direct dashboard entry, optional personalization, one question per reflection screen.
 - Morning intention and evening reflection; edit them from the Journal.
 - Mood selections, gratitude, daily priorities, movement, three good things, and a word for the day.
 - Custom habits, check/uncheck, removal, and water logging.
-- Day and espresso night appearance; accessible keyboard controls and reduced-motion support.
+- Day and dark appearance, responsive dashboard cards, floating mobile navigation, keyboard controls, and reduced-motion support.
 - Weekly reflection note; illustrative 7/30-day patterns and sample 30-day recipe.
 - Preference controls, clear-preview confirmation, mobile navigation, legal links.
 
@@ -47,7 +47,7 @@ Native iOS/Android binaries, user accounts, persistent history, notifications, h
 
 ## Deploy
 
-The `dist/` directory is the deployable site. `npm run build` only updates SEO metadata and sitemap; it does not need a bundler. Set `SITE_URL` to the final public origin before building, or change `site.config.json`.
+The `dist/` directory is the deployable site. `npm run build` updates SEO metadata, the sitemap, and content-based asset version tags; it does not need a bundler. Set `SITE_URL` to the final public origin before building, or change `site.config.json`.
 
 ```sh
 SITE_URL=https://your-real-domain.example npm run build
@@ -77,6 +77,6 @@ This release is ready to demonstrate **as a mock preview**. It is not the data-s
 
 Product vision supplied by the project owner, attributed in the brief to Jeannette Breitfuss. Development and security brand attribution: Orso Solutions × [OTORO](https://otoro.si). These credits are not a representation of an independent audit.
 
-`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The phone/journal hero and interface are HTML/CSS; icons are original inline SVG. Fonts use the visitor's system serif and sans-serif stacks; no third-party font calls are made.
+`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Manrope is hosted locally in `dist/assets/fonts/manrope-variable.ttf`, with its SIL Open Font License in `dist/assets/fonts/OFL.txt`. Font source: https://github.com/google/fonts/tree/main/ofl/manrope. No third-party font calls are made.
 
 Privacy implementation reference: [FTC mobile health app developer guidance](https://www.ftc.gov/business-guidance/resources/mobile-health-app-developers-ftc-best-practices), consulted October 17, 2026.
