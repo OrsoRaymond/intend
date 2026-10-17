@@ -53,7 +53,9 @@ The `dist/` directory is the deployable site. `npm run build` only updates SEO m
 SITE_URL=https://your-real-domain.example npm run build
 ```
 
-Use a static host with directory indexes and a real 404 fallback. Cloudflare Pages: build command `npm run build`, output `dist`. The provided `_headers` and `_redirects` implement security headers and clean route redirects on compatible hosts. On other hosts, translate these rules into the equivalent server configuration; keep app HTML `Cache-Control: no-store`. The included Node server also enforces the security headers and serves 404/405 responses correctly. HTTPS must be provided by your production host.
+Vercel: import the repository with the repository root as the Root Directory. The included `vercel.json` sets the static framework preset, build command `npm run build`, and output directory `dist`, overriding the default `public` directory. It also supplies security headers, app HTML `Cache-Control: no-store`, asset caching, and trailing-slash redirects. Set `SITE_URL` in Vercel's environment variables to the final public origin. Deploy the latest `main` commit; redeploying an older commit will not include this configuration.
+
+Other static hosts should support directory indexes and a real 404 fallback. Cloudflare Pages: build command `npm run build`, output `dist`. The provided `_headers` and `_redirects` implement security headers and clean route redirects on compatible hosts. On other hosts, translate these rules into the equivalent server configuration; keep app HTML `Cache-Control: no-store`. The included Node server also enforces the security headers and serves 404/405 responses correctly. HTTPS must be provided by your production host.
 
 `.openai/hosting.json` identifies the associated private Sites preview. The GitHub repository is the source handoff. Changing the public host requires updating `SITE_URL`; do not assume this preview's canonical URL is your final public domain.
 
