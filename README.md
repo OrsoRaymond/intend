@@ -2,7 +2,7 @@
 
 **More life. Less noise.**
 
-Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Bold, locally hosted Manrope typography, cream and ink foundations, lime and lilac accents, rounded controls, dimensional app previews, and gentle motion.
+Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Warm tan, caramel and espresso palette, bold locally hosted Manrope typography, dimensional 3D-style cards that lean toward the pointer, pop-in sections, a 3D journal and phone hero, and soft generated sound effects (Web Audio, no files, no network). The app preview is a dimensional daily dashboard: progress ring, quick mood check, habits, a water glass that fills, a mood chart with tooltips, one-question-per-screen reflections, achievement pop-ups and confetti, day and night looks.
 
 ## Run
 
@@ -75,7 +75,7 @@ This release is ready to demonstrate **as a mock preview**. It is not the data-s
 
 ## Credits and assets
 
-Product vision supplied by the project owner, attributed in the brief to Jeannette Breitfuss. Development and security brand attribution: Orso Solutions × [OTORO](https://otoro.si). These credits are not a representation of an independent audit.
+Product vision supplied by the project owner, attributed in the brief to Jeannette Breitfuss. Built and secured with Orso Solutions × [OTORO](https://otoro.si). These credits are not a representation of an independent audit.
 
 `dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Manrope is hosted locally in `dist/assets/fonts/manrope-variable.ttf`, with its SIL Open Font License in `dist/assets/fonts/OFL.txt`. Font source: https://github.com/google/fonts/tree/main/ofl/manrope. No third-party font calls are made.
 

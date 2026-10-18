@@ -3,56 +3,220 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
-  <meta name="referrer" content="no-referrer"><meta name="theme-color" content="#f6f5ef">
+  <meta name="referrer" content="no-referrer"><meta name="theme-color" content="#fbf6ee">
   <title>Intend — More life. Less noise.</title>
   <meta name="description" content="A morning intention. An evening reflection. A clearer idea of what makes you feel good. Try the Intend journal app preview. Coming soon to iPhone and Android.">
   <meta property="og:title" content="Intend — More life. Less noise."><meta property="og:description" content="Your daily space to check in, reflect, and get to know your kind of good."><meta property="og:type" content="website"><meta property="og:image" content="https://intend-a-little-more-you.jakejoke101.chatgpt.site/assets/quiet-room.webp">
-  <link rel="icon" href="/assets/mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-variable.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/assets/styles.css?v=ce76c915f6b7"><script type="module" src="/assets/site.js?v=b64caf21ebdc"></script><link rel="canonical" href="https://intend-a-little-more-you.jakejoke101.chatgpt.site/"><meta property="og:url" content="https://intend-a-little-more-you.jakejoke101.chatgpt.site/"></head>
+  <link rel="icon" href="/assets/mark.svg" type="image/svg+xml"><link rel="preload" href="/assets/fonts/manrope-variable.ttf" as="font" type="font/ttf" crossorigin><link rel="stylesheet" href="/assets/styles.css?v=9d2172a2186f"><script type="module" src="/assets/site.js?v=1a8125a21eb7"></script><link rel="canonical" href="https://intend-a-little-more-you.jakejoke101.chatgpt.site/"><meta property="og:url" content="https://intend-a-little-more-you.jakejoke101.chatgpt.site/"></head>
 <body class="website">
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header wrap">
-  <a href="/" class="wordmark" aria-label="Intend home"><span class="brand-flower" aria-hidden="true">✳</span>intend.</a>
-  <nav id="site-menu" aria-label="Main navigation"><a href="#your-day">The experience</a><a href="#the-idea">Why Intend?</a><a href="#the-journal">The journal</a></nav>
-  <a class="button small header-cta" href="/app/">Try Intend <span aria-hidden="true">↗</span></a>
-  <button class="mobile-menu icon-button" data-menu-toggle aria-expanded="false" aria-controls="site-menu" aria-label="Open navigation">☰</button>
+  <a href="/" class="wordmark" aria-label="Intend home"><span class="sun-mark" aria-hidden="true">✳</span>intend.</a>
+  <nav class="site-nav" id="site-menu" aria-label="Main">
+    <a href="#why">Why Intend</a>
+    <a href="#bookends">Your day</a>
+    <a href="#patterns">Patterns</a>
+    <a href="#faq">Questions</a>
+    <a class="button" href="/app/">Try Intend <span aria-hidden="true">↗</span></a>
+  </nav>
+  <button class="menu-button" data-menu-toggle aria-expanded="false" aria-controls="site-menu" aria-label="Open menu">☰</button>
 </header>
+
 <main id="main">
-  <section class="hero wrap">
-    <div class="hero-copy"><p class="eyebrow hero-kicker"><span class="status-dot"></span> A LITTLE LESS AUTOPILOT.</p>
-      <h1>More life.<br>Less <span class="headline-highlight">noise.</span></h1>
-      <p class="hero-description">A morning intention. An evening reflection.<br>A clearer idea of what makes you feel good.</p>
-      <div class="hero-actions"><a class="button" href="/app/">Find your good <span aria-hidden="true">↗</span></a><a class="text-link" href="#your-day">See how it feels <span aria-hidden="true">↓</span></a></div>
-      <p class="availability"><span class="device-icons" aria-hidden="true">▯</span> Coming soon to iPhone and Android, too.</p>
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div data-reveal>
+      <p class="eyebrow">A little less autopilot</p>
+      <h1 id="hero-title"><span class="line">More life.</span><span class="line"><em>Less noise.</em></span></h1>
+      <p class="lede">A morning intention. An evening reflection. A clearer idea of what makes you feel good, one small check-in at a time.</p>
+      <div class="hero-actions">
+        <a class="button" href="/app/" data-sound="pop">Find your good <span aria-hidden="true">↗</span></a>
+        <a class="ghost-button" href="#bookends">See how it feels ↓</a>
+      </div>
+      <p class="hero-meta"><span class="dot" aria-hidden="true"></span>Coming soon to iPhone and Android.</p>
     </div>
-    <div class="hero-art" aria-label="An illustrative preview of Intend's redesigned daily journal">
-      <div class="art-grid" aria-hidden="true"></div><div class="sculpture-ring" aria-hidden="true"></div><div class="sculpture-orb" aria-hidden="true"></div><span class="art-spark" aria-hidden="true">✳</span>
-      <div class="art-caption"><span class="status-dot"></span> SMALL MOMENTS. BIG PICTURE.</div>
-      <div class="phone hero-phone"><div class="phone-camera"></div><div class="phone-status">9:41 <span>••• ▰</span></div><div class="phone-top"><strong>intend.</strong><span class="mini-avatar">J</span></div><p class="mini-eyebrow">YOUR DAILY SPACE</p><h2>Hey, you.<span>☼</span></h2><p class="phone-subtitle">A fresh page. All yours.</p><div class="phone-reflection"><div class="phone-reflection-top"><span>MORNING CHECK-IN</span><span>↗</span></div><h3>How’s your<br>headspace?</h3><div class="phone-moods" aria-hidden="true"><span>⌢</span><span>–</span><span class="chosen">◡</span><span>◡</span></div><p>Start where you are.</p></div><div class="phone-intention"><span>TODAY’S INTENTION</span><p>Make room for<br>something good.</p><b>✳</b></div><div class="phone-nav" aria-hidden="true"><span class="active">☼<small>Today</small></span><span>▤<small>Journal</small></span><span>↗<small>Patterns</small></span></div></div>
-      <div class="floating-note"><span class="note-icon" aria-hidden="true">✓</span><div>A moment for you.<small>That’s a good place to start.</small></div></div><span class="art-footnote">APP PREVIEW · EXAMPLE CONTENT</span>
+    <div class="stage" data-stage aria-label="Intend journal and app preview, example content" role="img">
+      <div class="stage-inner">
+        <span class="orb sun" aria-hidden="true"></span>
+        <span class="orb clay" aria-hidden="true"></span>
+        <span class="orb sage" aria-hidden="true"></span>
+        <div class="journal-3d" aria-hidden="true"><span class="band"></span></div>
+        <div class="phone-3d" aria-hidden="true">
+          <div class="phone-screen">
+            <span class="phone-notch"></span>
+            <span class="phone-time">9:41</span>
+            <span class="phone-hello">Hey, you. ☼</span>
+            <div class="mini-card warm"><span>MORNING CHECK-IN</span><strong>How’s your headspace?</strong>
+              <div class="mini-faces"><span>⌢</span><span>–</span><span class="on">◡</span><span>☺</span></div></div>
+            <div class="mini-card"><span>TODAY’S INTENTION</span><strong>Make room for something good.</strong></div>
+            <div class="mini-card"><span>THIS WEEK</span>
+              <div class="mini-bars"><i data-h="55"></i><i data-h="70"></i><i data-h="50"></i><i data-h="92"></i><i data-h="74"></i><i data-h="68"></i><i data-h="96"></i></div></div>
+          </div>
+        </div>
+        <div class="float-chip chip-a" aria-hidden="true"><b>☼</b>Morning, done</div>
+        <div class="float-chip chip-b" aria-hidden="true"><b>✓</b>Stepped outside</div>
+        <div class="float-chip chip-c" aria-hidden="true"><b>☾</b>Word: Grounded</div>
+      </div>
     </div>
-    <div class="hero-bottom"><span>LOOK INWARD. NOTICE THE TRENDS. TEND TO WHAT GROWS YOU.</span><button data-motion-toggle aria-pressed="false">Pause motion <span aria-hidden="true">Ⅱ</span></button></div>
   </section>
-  <div class="ribbon-window" aria-hidden="true"><div class="ribbon"><div class="ribbon-track"><span>LESS SCROLLING</span><b>✳</b><span>MORE LIVING</span><b>✳</b><span>A MOMENT FOR YOU</span><b>✳</b><span>LESS SCROLLING</span><b>✳</b><span>MORE LIVING</span><b>✳</b><span>A MOMENT FOR YOU</span><b>✳</b></div></div></div>
-  <section class="idea-section wrap section-space" id="the-idea" data-reveal>
-    <div class="idea-copy"><div><p class="eyebrow">YOU’RE MORE THAN YOUR NUMBERS.</p><h2>You track everything.<br><span class="soft-ink">What about you?</span></h2></div><div class="idea-description"><p>Your phone counts your steps. It knows when you sleep. But it doesn’t know what made Tuesday feel good.</p><p>Intend starts with you. What’s on your mind. What you need today. What you want a little more of tomorrow.</p><div class="time-pair"><div><strong>2<span>min</span></strong><p>to start with intention</p></div><div><strong>3<span>min</span></strong><p>to put the day into words</p></div></div></div></div>
+
+  <div class="marquee" aria-label="Look inward. Notice the trends. Tend to what grows you.">
+    <div class="marquee-track" aria-hidden="true">
+      <span>Less scrolling</span><span>More living</span><span>A moment for you</span><span>Tend to what grows you</span>
+      <span>Less scrolling</span><span>More living</span><span>A moment for you</span><span>Tend to what grows you</span>
+    </div>
+  </div>
+  <button class="plain-button motion-toggle" data-motion-toggle aria-pressed="false">Pause gentle motion</button>
+
+  <section class="section wrap" id="why" aria-labelledby="why-title">
+    <div class="split">
+      <div data-reveal>
+        <p class="eyebrow">You’re more than your numbers</p>
+        <h2 id="why-title">You track everything. <em>What about you?</em></h2>
+        <p class="lede">Your phone counts your steps. It knows when you sleep. But it doesn’t know what made Tuesday feel good. Intend starts with you: what’s on your mind, what you need today, what you want a little more of tomorrow.</p>
+        <div class="stat-row">
+          <div class="stat tilt"><strong>2 min</strong><span>to start with intention</span></div>
+          <div class="stat tilt"><strong>3 min</strong><span>to put the day into words</span></div>
+        </div>
+      </div>
+      <div class="cards-3 single" data-reveal data-delay="1">
+        <article class="card dark tilt"><span class="glyph pop-out" aria-hidden="true">✳</span><h3>No streak anxiety.</h3><p>A missed day is just a day. Come back when you’re ready.</p></article>
+      </div>
+    </div>
+    <div class="cards-3" data-reveal data-delay="2">
+      <article class="card tilt"><span class="glyph pop-out" aria-hidden="true">☼</span><h3>Check in before the day takes over.</h3><p>One thought to take with you. One intention to make it yours.</p></article>
+      <article class="card warm tilt"><span class="glyph pop-out" aria-hidden="true">◡</span><h3>No one to perform for.</h3><p>No feed, no followers. This space is yours.</p></article>
+      <article class="card tilt"><span class="glyph pop-out" aria-hidden="true">☾</span><h3>Check out with perspective.</h3><p>The good bits. The hard bits. A word to remember the day by.</p></article>
+    </div>
   </section>
-  <section class="ritual-story wrap" id="your-day" data-phase="morning">
-    <div class="story-inner"><div class="story-heading"><p class="eyebrow">MAKE A LITTLE ROOM.</p><h2>Meet your<br>new bookends.</h2><p>Check in before the day takes over.<br>Check out with a little more perspective.</p><div class="story-tabs" role="tablist" aria-label="Explore a day with Intend"><button id="tab-morning" role="tab" aria-selected="true" aria-controls="story-morning" data-story="morning">☼ Morning</button><button id="tab-day" role="tab" aria-selected="false" aria-controls="story-day" data-story="day">✳ Daytime</button><button id="tab-evening" role="tab" aria-selected="false" aria-controls="story-evening" data-story="evening">☾ Evening</button></div><a class="button light" href="/app/">Give it a go <span>↗</span></a></div>
-    <div class="story-stage"><div class="story-orbit" aria-hidden="true"></div>
-      <div class="ritual-card" id="story-morning" role="tabpanel" aria-labelledby="tab-morning" data-story-panel="morning"><div class="ritual-card-top"><span>01 / MORNING</span><span class="pill-tag">~ 2 MIN</span></div><div class="ritual-symbol" aria-hidden="true">✳</div><h3>How do you want<br>to show up?</h3><p>One thought to take with you.<br>One intention to make it yours.</p><div class="sample-entry"><span>TODAY, I WANT TO…</span><p>Be here for the small things.</p><small>Example intention</small></div></div>
-      <div class="ritual-card" id="story-day" role="tabpanel" aria-labelledby="tab-day" data-story-panel="day" hidden><div class="ritual-card-top"><span>02 / IN BETWEEN</span><span class="pill-tag">A FEW SECONDS</span></div><div class="ritual-symbol" aria-hidden="true">↗</div><h3>A little care.<br>Then back to life.</h3><p>Tap a habit. Log a glass of water.<br>Leave room for everything else.</p><div class="sample-habits"><span><b>✓</b> Step outside</span><span><b>✓</b> Move my body</span><span><b>○</b> Make time for a conversation</span></div></div>
-      <div class="ritual-card" id="story-evening" role="tabpanel" aria-labelledby="tab-evening" data-story-panel="evening" hidden><div class="ritual-card-top"><span>03 / EVENING</span><span class="pill-tag">~ 3 MIN</span></div><div class="ritual-symbol" aria-hidden="true">☾</div><h3>What’s staying<br>with you?</h3><p>The good bits. The hard bits.<br>A word to remember the day by.</p><div class="sample-entry"><span>ONE WORD FOR TODAY</span><p>Grounded.</p><small>Tomorrow is a new page.</small></div></div>
-    </div></div>
+
+  <section class="section wrap ritual-story" id="bookends" data-phase="morning" aria-labelledby="bookends-title">
+    <div class="section-head" data-reveal>
+      <p class="eyebrow">Make a little room</p>
+      <h2 id="bookends-title">Meet your <em>new bookends.</em></h2>
+    </div>
+    <div class="ritual-tabs" role="tablist" aria-label="Parts of your day">
+      <button role="tab" id="tab-morning" aria-controls="panel-morning" aria-selected="true" data-story="morning">☼ Morning</button>
+      <button role="tab" id="tab-day" aria-controls="panel-day" aria-selected="false" data-story="day">✳ Daytime</button>
+      <button role="tab" id="tab-evening" aria-controls="panel-evening" aria-selected="false" data-story="evening">☾ Evening</button>
+    </div>
+    <div class="ritual-panel" role="tabpanel" id="panel-morning" aria-labelledby="tab-morning" data-story-panel="morning">
+      <div><span class="time-tag">01 / Morning · about 2 min</span><h3>How do you want to show up?</h3><p>One thought to take with you. One intention to make it yours.</p></div>
+      <div class="example-card tilt"><p class="eyebrow">Today, I want to…</p><p class="big pop-out">Be here for the small things.</p><p class="small-note">Example intention</p></div>
+    </div>
+    <div class="ritual-panel" role="tabpanel" id="panel-day" aria-labelledby="tab-day" data-story-panel="day" hidden>
+      <div><span class="time-tag">02 / In between · a few seconds</span><h3>A little care. Then back to life.</h3><p>Tap a habit. Log a glass of water. Leave room for everything else.</p></div>
+      <div class="example-card tilt"><div class="habit-demo pop-out"><span class="done"><i>✓</i>Step outside</span><span class="done"><i>✓</i>Move my body</span><span><i>○</i>Make time for a conversation</span></div></div>
+    </div>
+    <div class="ritual-panel" role="tabpanel" id="panel-evening" aria-labelledby="tab-evening" data-story-panel="evening" hidden>
+      <div><span class="time-tag">03 / Evening · about 3 min</span><h3>What’s staying with you?</h3><p>The good bits. The hard bits. A word to remember the day by.</p></div>
+      <div class="example-card tilt"><p class="eyebrow">One word for today</p><p class="big pop-out">Grounded.</p><p class="small-note">Tomorrow is a new page.</p></div>
+    </div>
+    <p class="hero-actions"><a class="button" href="/app/" data-sound="pop">Give it a go <span aria-hidden="true">↗</span></a></p>
   </section>
-  <section class="patterns-section wrap section-space" id="patterns" data-reveal>
-    <div class="patterns-visual"><div class="insight-label"><span class="pill-tag">THE BIGGER PICTURE</span><span>SAMPLE DATA</span></div><h3>A week in your world.</h3><p>Some days have a little more light.</p><svg class="sample-chart" viewBox="0 0 560 240" role="img" aria-label="Illustrative mood trend across seven days. Sample data only."><g class="chart-grid"><path d="M25 45H535M25 100H535M25 155H535M25 210H535"/></g><path class="chart-area" d="M30 165C75 165 85 100 115 100S175 145 200 145S265 55 285 55S345 85 370 85S430 135 455 105S505 50 535 40V210H30Z"/><path class="chart-line" d="M30 165C75 165 85 100 115 100S175 145 200 145S265 55 285 55S345 85 370 85S430 135 455 105S505 50 535 40"/><circle cx="285" cy="55" r="9" class="chart-dot"/><g class="chart-axis"><text x="25" y="235">M</text><text x="110" y="235">T</text><text x="195" y="235">W</text><text x="280" y="235">T</text><text x="365" y="235">F</text><text x="450" y="235">S</text><text x="530" y="235">S</text></g></svg><div class="insight-example"><span aria-hidden="true">↗</span><div><h4>Fresh air looks good on you.</h4><p>In this example, days with a walk felt better.</p></div></div><p class="fine-print">Illustrative insight. Associations, never diagnoses.</p></div>
-    <div class="patterns-copy"><p class="eyebrow">CONNECT YOUR OWN DOTS.</p><h2>Your life is<br>leaving clues.</h2><p>The walk. The early night. The friend you finally called. What do your best days have in common?</p><p>We’re building Intend to help you find out, through your own reflections.</p><div class="milestones"><div><strong>07</strong><span>Look back<br>at your week</span></div><div><strong>14</strong><span>Start noticing<br>your patterns</span></div><div><strong>30</strong><span>Find your<br>personal recipe</span></div></div><p class="small-note">A look at what’s planned. Personal insights and saved history are coming in a future release.</p></div>
+
+  <section class="section wrap" id="patterns" aria-labelledby="patterns-title">
+    <div class="split">
+      <div data-reveal>
+        <p class="eyebrow">The bigger picture · sample data</p>
+        <h2 id="patterns-title">A week <em>in your world.</em></h2>
+        <p class="lede">Some days have a little more light. Intend helps you notice which ones, and what they have in common.</p>
+        <div class="insight"><b aria-hidden="true">↗</b><span>Fresh air looks good on you. In this example, days with a walk felt better.</span></div>
+        <p class="small-note">Illustrative insight. Associations, never diagnoses.</p>
+      </div>
+      <div class="card tilt" data-reveal data-delay="1">
+        <p class="eyebrow">Mood this week</p>
+        <div class="week" aria-label="Example mood scores for a week, out of five">
+          <div class="week-bar"><i data-h="60"></i>M</div><div class="week-bar"><i data-h="80"></i>T</div><div class="week-bar"><i data-h="58"></i>W</div>
+          <div class="week-bar best"><i data-h="100"></i>T</div><div class="week-bar"><i data-h="78"></i>F</div><div class="week-bar"><i data-h="76"></i>S</div><div class="week-bar best"><i data-h="98"></i>S</div>
+        </div>
+      </div>
+    </div>
   </section>
-  <section class="journal-section wrap" id="the-journal"><div class="journal-image"><img src="/assets/quiet-room.webp" alt="An Intend journal on pale stone in a sunlit room" width="1536" height="1024" loading="lazy"><span class="image-sticker">PAPER PEOPLE,<br>WE SEE YOU. <b>↗</b></span></div><div class="journal-content"><p class="eyebrow">PEN. PAPER. POSSIBILITY.</p><h2>Offline feels<br>good, too.</h2><p>Some thoughts come easier with a pen in your hand. The Intend journal is being designed to bring those moments into the picture.</p><p>Write on paper. Photograph your coded page. Keep your reflections together in the future app.</p><div class="journal-roadmap"><span class="status-dot"></span> Paper journal & scanning · In development</div><p class="small-note">No camera or photo access in this preview.</p></div></section>
-  <section class="principles wrap section-space" data-reveal><div><p class="eyebrow">PROGRESS WITHOUT THE PRESSURE.</p><h2>Room to be<br>a human.</h2></div><div class="principle-list"><article><span>↗</span><div><h3>No streak anxiety.</h3><p>A missed day is just a day. Come back when you’re ready.</p></div></article><article><span>✳</span><div><h3>No one to perform for.</h3><p>No feed, no followers. This space is yours.</p></div></article><article><span>◡</span><div><h3>No perfect way to do it.</h3><p>Two minutes or a page full. Start with what you have.</p></div></article></div></section>
-  <section class="questions wrap" aria-labelledby="faq-title"><div><p class="eyebrow">GOOD QUESTIONS.</p><h2 id="faq-title">A little<br>clarity.</h2></div><div class="faq-list"><details><summary>What can I try right now?<span>+</span></summary><p>Morning and evening reflections, custom habits, water logging, and sample pattern and recipe screens. This is mock version 1: no account and no permanent storage. Reloading or leaving the app clears your entries.</p></details><details><summary>Can I use it on my phone?<span>+</span></summary><p>Yes, this web preview works on phones, tablets, and computers. Dedicated iPhone and Android apps are coming soon. A release date has not been announced.</p></details><details><summary>Does it connect to my health data or journal?<span>+</span></summary><p>Not yet. Sleep, steps, workout connections, journal scanning, and real personal insights are planned for the full product. This preview does not access those sources.</p></details><details><summary>Is Intend a medical service?<span>+</span></summary><p>No. Intend is for personal reflection, not diagnosis, treatment, or medical advice. Future insights will show associations, not causes.</p></details><details><summary>Do I need to sign up?<span>+</span></summary><p>No sign-up is needed. Please use sample information while exploring. Accounts and saved history will be introduced separately.</p></details></div></section>
-  <section class="closing wrap"><span class="closing-star" aria-hidden="true">✳</span><p class="eyebrow">MAKE SOME ROOM FOR YOURSELF.</p><h2>Good days.<br>Your way.</h2><a class="button" href="/app/">Let’s begin <span>↗</span></a><p>Coming soon to iPhone and Android, too.</p><span class="closing-smile" aria-hidden="true">◡</span></section>
+
+  <section class="section wrap" aria-labelledby="clues-title">
+    <div class="section-head" data-reveal>
+      <p class="eyebrow">Connect your own dots</p>
+      <h2 id="clues-title">Your life is <em>leaving clues.</em></h2>
+      <p class="lede">The walk. The early night. The friend you finally called. What do your best days have in common? We’re building Intend to help you find out, through your own reflections.</p>
+    </div>
+    <div class="journey" data-reveal data-delay="1">
+      <article class="card tilt"><strong class="pop-out">07</strong><h3>Look back at your week</h3></article>
+      <article class="card warm tilt"><strong class="pop-out">14</strong><h3>Start noticing your patterns</h3></article>
+      <article class="card dark tilt"><strong class="pop-out">30</strong><h3>Find your personal recipe</h3></article>
+    </div>
+    <p class="small-note">A look at what’s planned. Personal insights and saved history are coming in a future release.</p>
+  </section>
+
+  <section class="section wrap" aria-labelledby="paper-title">
+    <div class="split">
+      <div class="card dark tilt" data-reveal>
+        <span class="glyph pop-out" aria-hidden="true">✎</span>
+        <p class="eyebrow">Pen. Paper. Possibility.</p>
+        <h2 id="paper-title">Offline feels <em>good, too.</em></h2>
+        <p class="lede">Some thoughts come easier with a pen in your hand. The Intend journal is being designed to bring those moments into the picture.</p>
+      </div>
+      <div data-reveal data-delay="1">
+        <p class="eyebrow">Paper people, we see you</p>
+        <p class="lede">Write on paper. Photograph your coded page. Keep your reflections together in the future app.</p>
+        <p class="small-note">Paper journal and scanning are in development. No camera or photo access in this preview.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="faq" aria-labelledby="faq-title">
+    <div class="section-head" data-reveal><p class="eyebrow">Good questions</p><h2 id="faq-title">A little <em>clarity.</em></h2></div>
+    <div class="faq" data-reveal data-delay="1">
+      <details><summary>What can I try right now?</summary><p>Morning and evening reflections, custom habits, water logging, and sample pattern and recipe screens. This is mock version 1: no account and no permanent storage. Reloading or leaving the app clears your entries.</p></details>
+      <details><summary>Can I use it on my phone?</summary><p>Yes, this web preview works on phones, tablets and computers. Dedicated iPhone and Android apps are coming soon. A release date has not been announced.</p></details>
+      <details><summary>Does it connect to my health data or journal?</summary><p>Not yet. Sleep, steps, workout connections, journal scanning and real personal insights are planned for the full product. This preview does not access those sources.</p></details>
+      <details><summary>Is Intend a medical service?</summary><p>No. Intend is for personal reflection, not diagnosis, treatment or medical advice. Future insights will show associations, not causes.</p></details>
+      <details><summary>Do I need to sign up?</summary><p>No sign-up is needed. Please use sample information while exploring. Accounts and saved history will be introduced separately.</p></details>
+    </div>
+  </section>
+
+  <section class="section wrap" aria-labelledby="partner-title">
+    <div class="partner" data-reveal>
+      <div class="partner-grid">
+        <div>
+          <p class="eyebrow">Development &amp; security partner</p>
+          <h2 id="partner-title">Built and secured with Orso Solutions × OTORO.</h2>
+          <p>Intend is designed and engineered with Orso Solutions, using OTORO to build the product and keep it secure: strict content security, no trackers, no third-party calls, and privacy by design from the first line of code.</p>
+        </div>
+        <div class="partner-badge tilt">
+          <span class="shield pop-out" aria-hidden="true">⛨</span>
+          <div class="partner-logos"><span>Orso Solutions</span><span class="x">×</span><span>OTORO</span></div>
+          <ul class="partner-points"><li>Built with OTORO</li><li>Security-first by Orso Solutions</li><li>No trackers or ad networks</li></ul>
+          <a class="button light" href="https://otoro.si" target="_blank" rel="noopener noreferrer">Meet OTORO <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="cta-title">
+    <div class="cta" data-reveal>
+      <p class="eyebrow">Make some room for yourself</p>
+      <h2 id="cta-title">Good days. Your way.</h2>
+      <p>Coming soon to iPhone and Android. Try the preview today.</p>
+      <a class="button" href="/app/" data-sound="pop">Let’s begin <span aria-hidden="true">↗</span></a>
+    </div>
+  </section>
 </main>
-<footer class="site-footer wrap"><div class="footer-top"><a href="/" class="wordmark">✳ intend.</a><p>Look inward. Notice the trends.<br>Tend to what grows you.</p><nav aria-label="Footer"><a href="/privacy/">Privacy policy</a><a href="/terms/">Terms of service</a><a href="/app/">Open the app ↗</a></nav></div><div class="footer-bottom"><span>© 2026 Intend.</span><a class="otoro-credit" href="https://otoro.si" target="_blank" rel="noopener noreferrer"><span>DEVELOPMENT & SECURITY</span><strong>Orso Solutions × OTORO ↗</strong></a><span>MOCK VERSION 1</span></div></footer>
-<dialog id="preview-notice" class="notice-dialog" aria-labelledby="notice-title" aria-describedby="notice-description"><div class="notice-icon" aria-hidden="true">✳</div><p class="eyebrow">YOUR FIRST LOOK.</p><h2 id="notice-title">Meet Intend.<br>Make yourself at home.</h2><p id="notice-description">This is <strong>mock version 1</strong>. There’s no sign-up or data saving right now. Your entries disappear when you refresh or leave the app.</p><div class="notice-facts"><span>✓ No account needed</span><span>✓ No journal entries sent</span><span>✓ Sample insights only</span></div><p class="small-note">Please use sample information while exploring.</p><button class="button" data-dismiss-notice>Let me in <span>↗</span></button><p class="notice-legal">Read our <a href="/terms/">terms</a> and <a href="/privacy/">privacy policy</a>.</p></dialog>
-</body></html>
+
+<footer class="site-footer wrap">
+  <div>
+    <a href="/" class="wordmark" aria-label="Intend home"><span class="sun-mark" aria-hidden="true">✳</span>intend.</a>
+    <p>Look inward. Notice the trends. Tend to what grows you.</p>
+  </div>
+  <nav class="footer-links" aria-label="Footer">
+    <a href="/app/">Open the app ↗</a>
+    <a href="/privacy/">Privacy policy</a>
+    <a href="/terms/">Terms of service</a>
+  </nav>
+  <div class="footer-credit">
+    <p class="eyebrow">Development &amp; security</p>
+    <a href="https://otoro.si" target="_blank" rel="noopener noreferrer">Orso Solutions <span>×</span> OTORO ↗</a>
+  </div>
+  <p class="copyright">© 2026 Intend. Mock version 1 preview.</p>
+</footer>
+</body>
+</html>

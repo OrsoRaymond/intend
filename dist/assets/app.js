@@ -1,136 +1,437 @@
-import {createState, HABITS, MOODS, SAMPLE_WEEK, escapeHTML as esc, addHabit, toggleHabit, changeWater, submitReflection} from './state.js';
+// Intend app preview: a dimensional daily dashboard with reflections, habits, water, mood tracking,
+// pop-ups, achievements and soft generated sounds. Everything lives in page memory only (see state.js).
+import {createState, MOODS, SAMPLE_WEEK, escapeHTML as esc, addHabit, toggleHabit, changeWater, submitReflection} from './state.js';
 
+const FACES = ['☹', '⌢', '–', '◡', '☺'];
+const WATER_GOAL = 8;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let state = createState();
-let screen = 'app';
-let flow = null;
-let period = 'week';
+let ui = freshUi();
 let toastTimer;
 const root = document.querySelector('#app');
-const content = () => document.querySelector('#app-content');
-const paths = {
-  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/>',
-  journal:'<path d="M5 3h13a1 1 0 0 1 1 1v17H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 14h14M8 7h7M8 10h5"/>',
-  patterns:'<path d="M3 3v17h18M6 15l4-5 4 2 6-7"/><circle cx="10" cy="10" r="1"/><circle cx="14" cy="12" r="1"/>',
-  recipe:'<path d="M12 21V8m0 7C4 15 3 10 3 7c6 0 9 2 9 8Zm0-4c0-5 3-8 9-8 0 6-4 8-9 8Z"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 1 3h4l1-3 3-1 3-2-1-3 1-3-3-2-1-3Z"/>',
-  health:'<path d="M20 13 12 21 4 13C-1 7 6 1 12 7c6-6 13 0 8 6Z"/><path d="M4 11h4l2-3 3 7 2-4h5"/>',
-  moon:'<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>',
-  walk:'<circle cx="14" cy="4" r="2"/><path d="m9 20 3-6-3-4 3-3 4 4h4M12 14l4 6M9 10l-4 3"/>',
-  talk:'<path d="M20 11a8 8 0 0 1-8 8H4l2-4a8 8 0 1 1 14-4Z"/><path d="M8 10h8m-8 3h5"/>'
-};
-const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.sun}</svg>`;
-const date = () => new Intl.DateTimeFormat(undefined,{weekday:'long',month:'long',day:'numeric'}).format(new Date());
-const topHeading = (title,subtitle,tag='') => `<div class="app-heading"><div><p class="app-date">${date()}</p><h1 tabindex="-1">${title}</h1><p>${subtitle}</p></div>${tag?`<span class="page-tag">${tag}</span>`:''}</div>`;
 
+function freshUi() {
+  return {view: 'today', sound: true, theme: 'day', period: 7, flow: null, quickMood: 0, earned: new Set(), lastFocus: null};
+}
+
+/* ───────────── icons ───────────── */
+const paths = {
+  today: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/>',
+  journal: '<path d="M5 3h13a1 1 0 0 1 1 1v17H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 14h14M8 7h7M8 10h5"/>',
+  patterns: '<path d="M3 3v17h18M6 15l4-5 4 2 6-7"/>',
+  recipe: '<path d="M12 21V8m0 7C4 15 3 10 3 7c6 0 9 2 9 8Zm0-4c0-5 3-8 9-8 0 6-4 8-9 8Z"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 1 3h4l1-3 3-1 3-2-1-3 1-3-3-2-1-3Z"/>'
+};
+const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
+const VIEWS = [['today', 'Today'], ['journal', 'Journal'], ['patterns', 'Patterns'], ['recipe', 'My recipe'], ['settings', 'My space']];
+
+/* ───────────── sound (Web Audio, generated) ───────────── */
+let audio;
+function sound(kind) {
+  if (!ui.sound || reduced) return;
+  try {
+    audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') audio.resume();
+    const t = audio.currentTime;
+    const tone = (freq, start, len, type = 'sine', vol = .08, to) => {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t + start);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + start + len);
+      g.gain.setValueAtTime(.0001, t + start); g.gain.exponentialRampToValueAtTime(vol, t + start + .015);
+      g.gain.exponentialRampToValueAtTime(.0001, t + start + len);
+      o.connect(g).connect(audio.destination); o.start(t + start); o.stop(t + start + len + .05);
+    };
+    if (kind === 'pop') { tone(520, 0, .14, 'sine', .09, 940); tone(1320, .04, .1, 'triangle', .03); }
+    else if (kind === 'undo') tone(700, 0, .14, 'sine', .06, 380);
+    else if (kind === 'tick') tone(880, 0, .06, 'triangle', .04);
+    else if (kind === 'water') { tone(900, 0, .22, 'sine', .08, 260); tone(1400, .06, .12, 'sine', .03, 600); }
+    else if (kind === 'chime') [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * .09, .5, 'sine', .07));
+    else if (kind === 'open') tone(320, 0, .25, 'sine', .05, 640);
+  } catch { /* sound is a nicety */ }
+}
+
+/* ───────────── helpers ───────────── */
+const dateLabel = () => new Intl.DateTimeFormat(undefined, {weekday: 'long', month: 'long', day: 'numeric'}).format(new Date());
+function greeting() {
+  const h = new Date().getHours();
+  const part = h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
+  return state.name ? `${part}, ${esc(state.name)}.` : `${part}.`;
+}
+const habitsDone = () => state.habits.filter(h => h.done).length;
+function progress() {
+  const parts = [state.morning ? 1 : 0, state.evening ? 1 : 0, state.habits.length ? habitsDone() / state.habits.length : 0, Math.min(1, state.water / WATER_GOAL)];
+  return Math.round(parts.reduce((a, b) => a + b, 0) / parts.length * 100);
+}
+const todayMood = () => state.evening?.mood || state.morning?.mood || ui.quickMood || 0;
+function applyVars(scope = document) {
+  scope.querySelectorAll('[data-h]').forEach(el => el.style.setProperty('--h', `${Math.max(4, Math.min(100, Number(el.dataset.h) || 0))}%`));
+  scope.querySelectorAll('[data-fill]').forEach(el => el.style.setProperty('--fill', `${Math.max(0, Math.min(100, Number(el.dataset.fill) || 0))}%`));
+}
+
+/* ───────────── shell ───────────── */
 function shell() {
-  root.innerHTML = `<div class="app-shell"><aside class="app-sidebar"><a href="/" class="wordmark" aria-label="Intend website"><span class="brand-flower" aria-hidden="true">✳</span>intend.</a><p class="sidebar-caption">YOUR DAILY SPACE</p><nav class="app-nav" aria-label="App navigation">${[['today','sun','Today'],['journal','journal','Journal'],['patterns','patterns','Patterns'],['recipe','recipe','My recipe'],['settings','settings','My space']].map(([key,symbol,label])=>`<button data-view="${key}" ${state.view===key?'aria-current="page"':''}>${icon(symbol)}<span>${label}</span>${state.view===key?'<span class="nav-arrow" aria-hidden="true">↗</span>':''}</button>`).join('')}</nav><div class="sidebar-bottom"><div class="sidebar-message"><span aria-hidden="true">✳</span><h2>Your pace.<br>Your space.</h2><button class="text-link" data-action="setup">Make it yours ↗</button></div><a href="/">← Back to the website</a><div class="sidebar-legal"><a href="/privacy/" target="_blank" rel="noopener">Privacy</a><a href="/terms/" target="_blank" rel="noopener">Terms</a></div><a href="https://otoro.si" class="sidebar-credit" target="_blank" rel="noopener noreferrer">Development & security<br><strong>Orso Solutions × OTORO ↗</strong></a></div></aside><main class="app-main"><header class="app-topbar"><a href="/" class="app-mobile-brand">✳ intend.</a><span class="preview-badge"><span class="status-dot"></span><b>MOCK V1</b><span>No sign-up. Nothing saved.</span></span><div class="topbar-controls"><div class="theme-switch" aria-label="App appearance"><button data-theme="morning" aria-pressed="${state.mode==='morning'}">☼ Day</button><button data-theme="evening" aria-pressed="${state.mode==='evening'}">☾ Night</button></div><button class="profile-button" data-action="setup" aria-label="Personalize your space">${esc(state.name?.slice(0,1).toUpperCase()||'✳')}</button></div></header><div id="app-content" class="app-content"></div><nav class="app-bottom-links" aria-label="App footer"><a href="/">Website</a><a href="/privacy/" target="_blank" rel="noopener">Privacy ↗</a><a href="/terms/" target="_blank" rel="noopener">Terms ↗</a></nav></main></div>`;
-  document.body.dataset.theme=state.mode;
+  const navButtons = VIEWS.map(([key, label]) => `<button data-view="${key}" ${ui.view === key ? 'aria-current="page"' : ''}>${icon(key)}<span>${label}</span>${key === 'today' && !state.morning ? '<span class="nav-badge" aria-label="Check-in waiting">1</span>' : ''}</button>`).join('');
+  root.innerHTML = `
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <a href="/" class="wordmark" aria-label="Intend website"><span class="sun-mark" aria-hidden="true">✳</span>intend.</a>
+      <p class="sidebar-caption">Your daily space</p>
+      <nav class="app-nav" aria-label="App">${navButtons}</nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-card"><span aria-hidden="true">✳</span><h2>Your pace. Your space.</h2><button class="text-link" data-view="settings">Make it yours ↗</button></div>
+        <div class="sidebar-links"><a href="/">← Website</a><a href="/privacy/" target="_blank" rel="noopener">Privacy</a><a href="/terms/" target="_blank" rel="noopener">Terms</a></div>
+        <a class="sidebar-credit" href="https://otoro.si" target="_blank" rel="noopener noreferrer"><b aria-hidden="true">⛨</b><span>Built &amp; secured with Orso Solutions × OTORO</span></a>
+      </div>
+    </aside>
+    <main class="app-main" id="app-content" tabindex="-1"></main>
+  </div>
+  <nav class="mobile-tabs" aria-label="App">${VIEWS.map(([key, label]) => `<button data-view="${key}" ${ui.view === key ? 'aria-current="page"' : ''}>${icon(key)}<span>${label.replace('My ', '')}</span></button>`).join('')}</nav>`;
 }
+
+function topBar(title, subtitle) {
+  return `<header class="app-top"><div class="app-heading"><p class="app-date">${dateLabel()}</p><h1 tabindex="-1">${title}</h1><p>${subtitle}</p></div>
+  <div class="top-actions">
+    <button class="icon-button" data-action="sound" aria-pressed="${ui.sound}" aria-label="${ui.sound ? 'Sounds on' : 'Sounds off'}">${ui.sound ? '♪' : '♩'}</button>
+    <button class="icon-button" data-action="theme" aria-pressed="${ui.theme === 'night'}" aria-label="Switch to ${ui.theme === 'night' ? 'day' : 'night'} look">${ui.theme === 'night' ? '☾' : '☼'}</button>
+    <button class="avatar" data-view="settings" aria-label="My space">${esc((state.name || 'You').slice(0, 1).toUpperCase())}</button>
+  </div></header>`;
+}
+
 function render(focus = false) {
+  document.body.dataset.theme = ui.theme;
   shell();
-  if(screen==='welcome') welcome();
-  else if(screen==='flow') renderFlow();
-  else if(screen==='complete') completion();
-  else ({today, journal, patterns, recipe, settings}[state.view] || today)();
-  if(focus) { content().querySelector('h1')?.focus({preventScroll:true}); window.scrollTo({top:0,behavior:'instant'}); }
+  const main = root.querySelector('#app-content');
+  main.innerHTML = ({today, journal, patterns, recipe, settings})[ui.view]();
+  applyVars(main);
+  if (ui.view === 'patterns' || ui.view === 'today') wireChart(main);
+  if (focus) main.querySelector('h1')?.focus();
+  if (ui.flow) renderFlow();
 }
-function welcome() {
-  content().innerHTML=`<div class="completion welcome-screen"><div class="ritual-sun" aria-hidden="true"></div><p class="eyebrow">YOUR FIRST MOMENT</p><h1 tabindex="-1">Look inward.<br>Notice the trends.<br><em>Tend to what grows you.</em></h1><p>A little space to understand yourself.<br>One honest moment at a time.</p><button class="button" data-action="setup">Begin <span>↗</span></button><div><button class="plain-button" data-action="skip-setup">Or explore the preview</button></div><p class="small-note">About two minutes to make this space yours.<br>Your choices last only while this page stays open.</p></div>`;
+
+/* ───────────── today ───────────── */
+function ring(pct) {
+  const c = 2 * Math.PI * 50;
+  return `<div class="ring-meter"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="ring-gradient" x1="0" x2="1"><stop offset="0" stop-color="#e2a54a"/><stop offset="1" stop-color="#c8714a"/></linearGradient></defs>
+    <circle class="track" cx="60" cy="60" r="50"/><circle class="fill" cx="60" cy="60" r="50" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct / 100)).toFixed(1)}"/></svg><strong>${pct}%</strong></div>`;
 }
-function habitsMarkup(removable=false) {
-  return `<div class="habit-list">${state.habits.map(h=>`<div class="habit-item"><button class="habit-check" data-habit="${h.id}" aria-pressed="${h.done}"><span class="check-ring" aria-hidden="true">✓</span><span class="habit-name">${esc(h.name)}</span></button>${removable?`<button class="habit-remove" data-remove-habit="${h.id}" aria-label="Remove ${esc(h.name)}">×</button>`:''}</div>`).join('')||'<p class="field-help">There’s room to begin with one small thing.</p>'}</div>`;
+
+function chartSvg(values, labels, id) {
+  const w = 620, h = 220, pad = 34, max = 5;
+  const step = (w - pad * 2) / Math.max(1, values.length - 1);
+  const pts = values.map((v, i) => [pad + i * step, h - pad - (v / max) * (h - pad * 2)]);
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  const area = `${line} L${pts.at(-1)[0].toFixed(1)} ${h - pad} L${pts[0][0].toFixed(1)} ${h - pad} Z`;
+  const every = values.length > 10 ? 5 : 1;
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Mood over ${values.length} days, out of five" data-chart="${id}">
+    <defs><linearGradient id="area-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e2a54a" stop-opacity=".45"/><stop offset="1" stop-color="#e2a54a" stop-opacity="0"/></linearGradient></defs>
+    <g class="grid">${[1, 2, 3, 4, 5].map(v => `<line x1="${pad}" x2="${w - pad}" y1="${h - pad - v / max * (h - pad * 2)}" y2="${h - pad - v / max * (h - pad * 2)}"/>`).join('')}</g>
+    <path class="area" d="${area}"/><path class="line" d="${line}"/>
+    ${pts.map((p, i) => `<circle class="point" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="6" tabindex="0" data-tip="${esc(labels[i])}: ${MOODS[Math.round(values[i]) - 1] || 'Steady'}"/>`).join('')}
+    ${labels.map((l, i) => i % every === 0 || i === labels.length - 1 ? `<text x="${pts[i][0].toFixed(1)}" y="${h - 8}" text-anchor="middle">${esc(l)}</text>` : '').join('')}
+  </svg>`;
 }
+
+function weekValues() {
+  const values = SAMPLE_WEEK.slice(0, 6);
+  values.push(todayMood() || SAMPLE_WEEK[6]);
+  const days = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(undefined, {weekday: 'short'}).format(new Date(Date.now() - (6 - i) * 864e5)));
+  days[6] = 'Today';
+  return {values, days};
+}
+
 function today() {
-  const evening=state.mode==='evening'; const done=state[evening?'evening':'morning'];
-  const greeting=evening?'Good evening':'Good morning';
-  content().innerHTML=topHeading(`${greeting}${state.name?`, ${esc(state.name)}`:'.'}`,state.becoming?`A little more ${esc(state.becoming.toLowerCase().replace(/^more /,''))}. One day at a time.`:'A fresh page. A little space for you.')+`<div class="today-grid"><section class="moment-card"><div class="moment-label"><p class="eyebrow">${evening?'EVENING REFLECTION':'MORNING CHECK-IN'}</p><span class="pill-tag">${evening?'3':'2'} MIN FOR YOU</span></div><h2>${done?(evening?'The day is done.<br>Let it rest.':'An intention.<br>And a new start.'):(evening?'Leave a little<br>room to rest.':'Start with<br>how you feel.')}</h2><p>${done?esc(done.intention||done.word||'You made a little room for yourself.'):(evening?'What moved you? What felt good? Give your day a little perspective.':'A thought to carry. An intention to follow. A moment that’s just yours.')}</p><button class="button" data-start="${evening?'evening':'morning'}">${done?'Revisit your reflection':evening?'Close your day':'Begin your morning'} <span>↗</span></button><div class="moment-art" aria-hidden="true"><div class="moment-orbit"></div><span>${evening?'☾':'✳'}</span><div class="moment-orb"></div></div></section><aside class="thought-card"><div class="thought-top"><span class="thought-icon" aria-hidden="true">${evening?'☾':'✳'}</span><span class="eyebrow">A THOUGHT FOR TODAY</span></div><blockquote>${evening?'You can let today be enough, even with a few things left unfinished.':'Some things are yours to shape. Let your attention begin there.'}</blockquote><p class="small-note">An Intend thought, inspired by Stoic practice.</p></aside><section class="app-card rituals-card"><div class="card-heading"><h2>Daily rituals</h2><span class="page-tag">YOUR PACE</span></div><p>Small things that feel like you.</p>${habitsMarkup()}<button class="card-text-button" data-view="settings">Make them yours <span>↗</span></button></section><section class="app-card water-card"><div class="card-heading"><h2>Water break</h2><span class="water-drop" aria-hidden="true">◌</span></div><p>A sip. A pause. Back to it.</p><div class="water-display"><div class="water-art" data-level="${waterLevel()}" aria-hidden="true"><div></div></div><p class="water-count" aria-live="polite">${state.water}<small>${state.water===1?'glass':'glasses'} today</small></p></div><div class="water-controls"><button data-water="-1" aria-label="Remove one glass of water" ${state.water===0?'disabled':''}>−</button><span>~ 250 ml / glass</span><button data-water="1" aria-label="Add one glass of water" ${state.water===20?'disabled':''}>+</button></div><p class="water-caption">Your log. No target to hit.</p></section><section class="app-card checkins-card"><div class="card-heading"><h2>Your bookends</h2></div><p>Room at both ends of the day.</p>${['morning','evening'].map(k=>`<button class="checkin-link" data-start="${k}"><span class="checkin-symbol">${icon(k==='morning'?'sun':'moon')}</span><span><strong>${k==='morning'?'Morning':'Evening'}</strong><small>${state[k]?'Reflected today':'Ready when you are'}</small></span><span class="checkin-arrow" aria-hidden="true">${state[k]?'✓':'↗'}</span></button>`).join('')}<button class="card-text-button" data-view="journal">Open your journal <span>↗</span></button></section><div class="connection-row full-width">${icon('health')}<div><h3>A bigger picture is on the way.</h3><p>Steps, sleep, and movement alongside your reflections.</p></div><span class="page-tag">HEALTH CONNECTIONS · PLANNED</span></div></div><p class="saved-note">Just for this visit. Refreshing or leaving clears your entries.</p>`;
+  const evening = new Date().getHours() >= 17;
+  const mode = state.morning && !state.evening ? 'evening' : !state.morning ? 'morning' : null;
+  const cta = mode ? `<button class="button light" data-action="flow" data-mode="${mode}">${mode === 'morning' ? 'Start my morning check-in' : 'Start my evening reflection'} <span aria-hidden="true">↗</span></button>` : '<p class="pill">Both bookends done today ✓</p>';
+  const intention = state.morning?.intention ? `“${esc(state.morning.intention)}”` : evening ? 'How did today feel? A few minutes is plenty.' : 'Make room for something good.';
+  const pct = progress();
+  const {values, days} = weekValues();
+  return `${topBar(greeting(), 'Your space to check in, reflect and notice what makes a good day.')}
+  <div class="dash">
+    <section class="tile hero-tile span-8" aria-labelledby="today-intent">
+      <div><p class="eyebrow">${state.morning ? 'Today’s intention' : 'Your morning'}</p><h2 id="today-intent">${intention}</h2>
+        <p>${state.morning ? `Feeling ${MOODS[state.morning.mood - 1].toLowerCase()} this morning.` : 'Two minutes to decide how you want to show up.'}</p>${cta}</div>
+      <div class="day-orb" aria-hidden="true"><span class="ring"></span><span class="ring two"></span><span class="core"></span></div>
+    </section>
+    <section class="tile span-4 stat-tile" aria-labelledby="progress-title">${ring(pct)}
+      <div><p class="eyebrow">Today</p><h2 id="progress-title">${pct >= 100 ? 'A full day.' : pct >= 50 ? 'Nice rhythm.' : 'Just getting started.'}</h2><p>${(state.morning ? 1 : 0) + (state.evening ? 1 : 0)} of 2 check-ins · ${habitsDone()} of ${state.habits.length} habits · ${state.water} of ${WATER_GOAL} glasses</p></div>
+    </section>
+    <section class="tile span-12" aria-labelledby="mood-title">
+      <div class="tile-head"><div><p class="eyebrow">Quick check</p><h2 id="mood-title">How are you, right now?</h2></div>${todayMood() ? `<span class="pill">${MOODS[todayMood() - 1]}</span>` : ''}</div>
+      <div class="mood-row" role="group" aria-label="Choose your mood">${MOODS.map((m, i) => `<button class="mood-button" data-action="mood" data-mood="${i + 1}" aria-pressed="${todayMood() === i + 1}"><span aria-hidden="true">${FACES[i]}</span>${m}</button>`).join('')}</div>
+    </section>
+    <section class="tile span-6" aria-labelledby="habits-title">
+      <div class="tile-head"><div><p class="eyebrow">Little habits</p><h2 id="habits-title">Small steps, ticked.</h2></div><span class="pill">${habitsDone()}/${state.habits.length}</span></div>
+      <div class="habit-list">${state.habits.map(h => `<div class="habit-row"><button class="habit" data-action="habit" data-id="${h.id}" aria-pressed="${h.done}"><span class="check" aria-hidden="true">✓</span><span class="habit-name">${esc(h.name)}</span></button></div>`).join('')}</div>
+      <div class="add-habit"><label class="sr-only" for="new-habit">New habit</label><input id="new-habit" maxlength="60" placeholder="Add a habit, like ‘Stretch’"><button class="small-button" data-action="add-habit">Add</button></div>
+    </section>
+    <section class="tile span-6" aria-labelledby="water-title">
+      <div class="tile-head"><div><p class="eyebrow">Water</p><h2 id="water-title">${state.water >= WATER_GOAL ? 'Fully topped up.' : 'A glass at a time.'}</h2></div><span class="pill">Goal ${WATER_GOAL}</span></div>
+      <div class="glass-wrap"><div class="glass" aria-hidden="true"><span class="water" data-fill="${Math.min(100, state.water / WATER_GOAL * 100)}"></span></div>
+        <div class="water-controls"><p class="water-count">${state.water}<small> glasses</small></p>
+          <div class="add-habit"><button class="small-button" data-action="water" data-amount="1">+ Glass</button><button class="small-button soft" data-action="water" data-amount="-1" aria-label="Remove a glass">−</button></div></div></div>
+    </section>
+    <section class="tile span-8" aria-labelledby="week-title">
+      <div class="tile-head"><div><p class="eyebrow">This week · sample + today</p><h2 id="week-title">Your mood, at a glance.</h2></div><button class="small-button soft" data-view="patterns">See patterns</button></div>
+      <div class="chart-wrap">${chartSvg(values, days, 'week')}</div>
+    </section>
+    <section class="tile span-4" aria-labelledby="evening-title">
+      <p class="eyebrow">${state.evening ? 'Word of the day' : 'Tonight'}</p>
+      <h2 id="evening-title">${state.evening?.word ? esc(state.evening.word) : 'What’s staying with you?'}</h2>
+      <p>${state.evening ? 'Tomorrow is a new page.' : 'The good bits, the hard bits, and one word to remember the day by.'}</p>
+      ${state.morning && !state.evening ? '<p><button class="small-button" data-action="flow" data-mode="evening">Reflect now</button></p>' : ''}
+    </section>
+  </div>`;
 }
-function waterLevel(){return state.water===0?'empty':state.water<3?'low':state.water<5?'mid':state.water<7?'high':'full';}
-const morningQuestions=[
-  {key:'mood',title:'How are you arriving today?',hint:'There’s no right answer. Just the one that feels true.',type:'mood'},
-  {key:'intention',title:'What would you like to bring to today?',hint:'A way of being, rather than a list of things to do.',placeholder:'Today, I want to be a little more present.'},
-  {key:'gratitude',title:'What are you grateful for?',hint:'It can be the smallest thing.',placeholder:'The quiet before the day begins.'},
-  {key:'great',title:'What would make today feel good?',hint:'Something small enough to be real.',placeholder:'A walk without my phone.'},
-  {key:'mustDo',title:'One thing that matters today?',hint:'An invitation to focus. Not another demand.',placeholder:'Make time for the conversation I’ve been putting off.'}
-];
-const eveningQuestions=[
-  {key:'mood',title:'How are you closing out the day?',hint:'Let the whole day settle for a moment.',type:'mood'},
-  {key:'body',title:'What moved your body?',hint:'A walk, a stretch, a workout. Rest counts, too.',placeholder:'A slow walk after lunch.'},
-  {key:'mind',title:'What moved your mind?',hint:'A thought, a conversation, or something you learned.',placeholder:'A conversation that stayed with me.'},
-  {key:'good',title:'What was good today?',hint:'There’s room for three good things. One is enough, too.',placeholder:'1. A quiet coffee\n2. The sun on my face\n3. A laugh with someone I love'},
-  {key:'word',title:'One word for today?',hint:'Whatever comes to mind first.',placeholder:'Grounded',type:'word'},
-  {key:'promise',title:'How did your intention find its way into today?',hint:'Notice what happened, without turning it into a verdict.',placeholder:'I made a little more room to listen.'}
-];
-const setupQuestions=[
-  {key:'name',title:'What may we call you?',hint:'A first name, a nickname, or nothing at all. This stays in page memory.',placeholder:'Your first name',type:'name'},
-  {key:'becoming',title:'Who are you making room to become?',hint:'Choose what feels closest. You can change your mind.',type:'choice',choices:['More present','More rested','More grounded','More connected','More myself']},
-  {key:'habits',title:'A few things worth tending to?',hint:'Choose up to three. You can add your own later.',type:'habits'},
-  {key:'reflectionStyle',title:'How do you like to reflect?',hint:'A preview preference. The paper journal and scanning are still in development.',type:'choice',choices:['In the app','On paper','Both']},
-  {key:'reminderMorning',title:'When is your morning moment?',hint:'Choose a time to preview the preference. No notifications are sent in mock version 1.',type:'time'},
-  {key:'reminderEvening',title:'And a moment to close the day?',hint:'The full app is planned to offer at most two reminders a day. These are only example preferences.',type:'time'}
-];
-function startFlow(type) {
-  const setup=type==='setup';
-  flow={type,index:0,questions:setup?setupQuestions:type==='morning'?morningQuestions:eveningQuestions,answers:setup?{name:state.name,becoming:state.becoming,habits:state.habits.slice(0,3).map(h=>h.name),reflectionStyle:state.reflectionStyle,reminderMorning:state.reminderMorning,reminderEvening:state.reminderEvening}:{...(state[type]||{})}};
-  if(!setup) state.mode=type;
-  screen='flow';render(true);
+
+/* ───────────── journal ───────────── */
+function entryCard(mode) {
+  const e = state[mode];
+  if (!e) return '';
+  const labels = mode === 'morning'
+    ? [['intention', 'Intention'], ['gratitude', 'Grateful for'], ['great', 'Would make today great'], ['mustDo', 'Must do']]
+    : [['body', 'Body'], ['mind', 'Mind'], ['good', 'Good things'], ['word', 'Word of the day'], ['promise', 'For tomorrow']];
+  return `<article class="entry tile"><div class="tile-head"><h3>${mode === 'morning' ? '☼ Morning check-in' : '☾ Evening reflection'}</h3><span class="pill">${FACES[e.mood - 1]} ${MOODS[e.mood - 1]}</span></div>
+    <dl>${labels.filter(([k]) => e[k]).map(([k, l]) => `<dt>${l}</dt><dd>${esc(e[k])}</dd>`).join('') || '<dt>Mood</dt><dd>Just the check-in today.</dd>'}</dl>
+    <p><button class="small-button soft" data-action="flow" data-mode="${mode}">Edit</button></p></article>`;
 }
-function moodFace(n){const curve=['M7 18Q12 11 17 18','M7 17Q12 14 17 17','M7 16H17','M7 14Q12 19 17 14','M6 13Q12 22 18 13'][n-1];return `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.1" stroke-linecap="round" aria-hidden="true"><path d="M8 8v1m8-1v1${curve}"/></svg>`;}
-function renderFlow(){
-  const q=flow.questions[flow.index], val=flow.answers[q.key]??'';let field='';
-  if(q.type==='mood') field=`<div class="mood-picker" role="group" aria-label="How you feel">${MOODS.map((m,i)=>`<button type="button" class="mood-option" data-answer="${i+1}" aria-pressed="${val===i+1}"><span class="mood-face">${moodFace(i+1)}</span><span>${m}</span></button>`).join('')}</div>`;
-  else if(q.type==='choice')field=`<div class="choice-list" role="group" aria-label="${esc(q.title)}">${q.choices.map(choice=>`<button type="button" class="choice-button" data-choice="${esc(choice)}" aria-pressed="${val===choice}">${esc(choice)}<span class="check-ring" aria-hidden="true">✓</span></button>`).join('')}</div>`;
-  else if(q.type==='habits')field=`<div class="choice-list" role="group" aria-label="Choose up to three habits">${HABITS.map(choice=>`<button type="button" class="choice-button" data-setup-habit="${esc(choice)}" aria-pressed="${(val||[]).includes(choice)}">${esc(choice)}<span class="check-ring" aria-hidden="true">✓</span></button>`).join('')}</div><p class="field-help">${(val||[]).length} of 3 chosen. Starting with less is welcome.</p>`;
-  else if(q.type==='time') field=`<label class="field-label" for="flow-input">${q.key==='reminderMorning'?'Morning':'Evening'} time</label><input class="time-input" id="flow-input" type="time" data-field="${q.key}" value="${esc(val)}">`;
-  else if(q.type==='name'||q.type==='word')field=`<label class="field-label" for="flow-input">${q.type==='name'?'Your name (optional)':'Your word (optional)'}</label><input class="text-input ${q.type==='word'?'word-field':''}" id="flow-input" data-field="${q.key}" value="${esc(val)}" placeholder="${esc(q.placeholder)}" maxlength="${q.type==='name'?40:60}" autocomplete="off">`;
-  else field=`<label class="field-label" for="flow-input">Your reflection (optional)</label><textarea class="text-area" id="flow-input" data-field="${q.key}" placeholder="${esc(q.placeholder)}" maxlength="1200" autocomplete="off" spellcheck="false">${esc(val)}</textarea><p class="field-help">Only on this page. Nothing is sent or saved.</p>`;
-  const morningReminder=flow.type==='evening'&&q.key==='promise'&&(state.morning?.intention||state.morning?.mustDo);
-  content().innerHTML=`<div class="flow-wrap"><div class="flow-top"><button data-action="exit-flow">← Back to today</button><span>${flow.type==='setup'?'MAKING ROOM':flow.type==='morning'?'MORNING':'EVENING'} / ${flow.index+1} OF ${flow.questions.length}</span></div><div class="flow-progress" aria-label="Step ${flow.index+1} of ${flow.questions.length}">${flow.questions.map((_,i)=>`<span class="${i<=flow.index?'complete':''}"></span>`).join('')}</div><p class="eyebrow">${flow.type==='setup'?'A SPACE THAT FEELS LIKE YOU':'A MOMENT TO NOTICE'}</p><h1 tabindex="-1">${q.title}</h1><p class="flow-hint">${q.hint}</p>${morningReminder?`<div class="entry-summary"><span>THIS MORNING, YOU WROTE</span><p>${esc(state.morning.intention||state.morning.mustDo)}</p>${state.morning.mustDo?`<p class="field-help">One thing that mattered: ${esc(state.morning.mustDo)}</p>`:''}</div>`:''}<form id="flow-form" autocomplete="off"><div class="flow-body">${field}</div><p id="flow-error" class="form-error" role="status"></p><div class="flow-actions">${flow.index>0?'<button type="button" class="plain-button" data-action="flow-back">← Previous</button>':'<span></span>'}<button class="button" type="submit">${flow.index===flow.questions.length-1?(flow.type==='setup'?'Make room for today':'Finish this moment'):'Continue'} <span>→</span></button></div></form></div>`;
+function journal() {
+  const any = state.morning || state.evening;
+  return `${topBar('Journal', 'Today’s pages. They stay in this open page only.')}
+  <div class="dash"><div class="span-7 settings-list">${any ? entryCard('morning') + entryCard('evening') : `<div class="tile empty"><div class="notice-icon" aria-hidden="true">✎</div><h2>A fresh page.</h2><p>Start with a two-minute morning check-in.</p><button class="button" data-action="flow" data-mode="morning">Begin <span aria-hidden="true">↗</span></button></div>`}</div>
+  <section class="tile span-5" aria-labelledby="weekly-title"><p class="eyebrow">Weekly note</p><h2 id="weekly-title">A note to your week.</h2><label class="sr-only" for="weekly-note">Weekly note</label><textarea id="weekly-note" maxlength="1200" placeholder="What do you want to remember about this week?">${esc(state.weeklyNote)}</textarea><p><button class="small-button" data-action="save-note">Keep note</button></p></section></div>`;
 }
-function advanceFlow(){
-  const q=flow.questions[flow.index];
-  if(q.type==='mood'&&!flow.answers.mood){document.querySelector('#flow-error').textContent='Choose the feeling closest to yours to continue.';return;}
-  if(q.type==='choice'&&!flow.answers[q.key]){document.querySelector('#flow-error').textContent='Choose what feels closest to continue.';return;}
-  if(q.type==='time'&&!/^\d{2}:\d{2}$/.test(flow.answers[q.key]||'')){document.querySelector('#flow-error').textContent='Choose a time to continue.';return;}
-  if(flow.index<flow.questions.length-1){flow.index++;render(true);return;}
-  if(flow.type==='setup'){
-    state.name=String(flow.answers.name||'').trim().slice(0,40);state.becoming=flow.answers.becoming;
-    state.habits=(flow.answers.habits||[]).map((name,i)=>({id:i+1,name,done:false}));state.nextHabitId=state.habits.length+1;
-    state.reflectionStyle=flow.answers.reflectionStyle;state.reminderMorning=flow.answers.reminderMorning;state.reminderEvening=flow.answers.reminderEvening;state.onboarded=true;
-    state.view='today';screen='app';flow=null;render(true);toast('A little space, made yours. Your choices last for this visit.');
-  }else{submitReflection(state,flow.type,flow.answers);screen='complete';render(true);}
+
+/* ───────────── patterns ───────────── */
+function series(n) {
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(Math.max(1.4, Math.min(5, 3.3 + Math.sin(i * .9) * .9 + Math.cos(i * .37) * .5 + (i % 7 === 3 ? .6 : 0))));
+  return out.map(v => Math.round(v * 10) / 10);
 }
-function completion(){const evening=flow?.type==='evening';const entry=state[evening?'evening':'morning'];content().innerHTML=`<div class="completion"><div class="${evening?'moon-art':'ritual-sun'}" aria-hidden="true"></div><p class="eyebrow">A MOMENT, WELL SPENT</p><h1 tabindex="-1">${evening?'Rest well.<br><em>Tomorrow is a new page.</em>':'A little intention.<br><em>A different beginning.</em>'}</h1><p>${evening?'You don’t need to make sense of everything tonight. Let this be enough.':'Take this with you. There’s no perfect way to live a day, only your way.'}</p>${entry?.intention||entry?.word?`<div class="entry-summary"><span>${evening?'YOUR WORD FOR TODAY':'YOUR INTENTION'}</span><p>${esc(entry.intention||entry.word)}</p></div>`:''}<button class="button" data-view="today">Return to your day <span>↗</span></button><p class="small-note">This reflection is available in Journal during this visit only.<br>It disappears when you refresh or leave the app.</p></div>`;}
-const entryLabels={mood:'How you felt',intention:'Your intention',gratitude:'Grateful for',great:'What would make today good',mustDo:'One thing that mattered',body:'What moved your body',mind:'What moved your mind',good:'The good things',word:'One word for today',promise:'Your intention, revisited'};
-function journal(){content().innerHTML=topHeading('Your pages.','The moments you’ve made room for, during this visit.','THIS VISIT ONLY')+(!state.morning&&!state.evening?`<div class="journal-empty">${icon('journal')}<h2>A blank page is<br><em>an open invitation.</em></h2><p>Your morning and evening reflections will appear here. Start with whatever feels true today.</p><button class="button" data-start="${state.mode}">Make your first reflection <span>↗</span></button></div>`:`<div class="entry-list">${['morning','evening'].filter(k=>state[k]).map(k=>`<article class="entry-card"><div class="entry-header"><h2>${k==='morning'?'☼ Morning intention':'☾ Evening reflection'}</h2><button class="plain-button" data-start="${k}">Edit ↗</button></div><p class="small-note">${date()} · Only in this open preview</p><dl>${Object.entries(state[k]).filter(([key,value])=>key!=='completedAt'&&value).map(([key,value])=>`<div class="entry-row"><dt>${entryLabels[key]||key}</dt><dd>${esc(key==='mood'?MOODS[value-1]:value)}</dd></div>`).join('')}</dl></article>`).join('')}</div><div class="flow-actions">${!state.morning?'<button class="button outline" data-start="morning">Add a morning moment ↗</button>':''}${!state.evening?'<button class="button outline" data-start="evening">Add an evening reflection ↗</button>':''}</div>`)+`<div class="connection-row full-width journal-scan-note">${icon('journal')}<div><h3>Paper has a place here, too.</h3><p>Journal scanning is planned. No camera or photo access in this preview.</p></div><span class="page-tag">COMING LATER</span></div>`;}
-function chart(){const vals=period==='week'?SAMPLE_WEEK:[2,3,2,4,3,3,4,3,5,3,4,4,3,5,4,4,5,3,4,4,5,4,5,4,5,3,5,4,4,5];const points=vals.map((n,i)=>`${20+i*(500/(vals.length-1))},${210-n*34}`);return `<svg class="app-chart" viewBox="0 0 540 235" role="img" aria-label="Illustrative ${period==='week'?'7':'30'} day mood ratings. Sample data only."><g class="chart-grid"><path d="M20 40H520M20 80H520M20 120H520M20 160H520M20 200H520"/></g><polygon class="chart-area" points="20,200 ${points.join(' ')} 520,200"/><polyline class="chart-line" points="${points.join(' ')}"/><g class="chart-axis">${(period==='week'?['M','T','W','T','F','S','S']:['Day 1','Day 7','Day 14','Day 21','Day 30']).map((v,i,a)=>`<text x="${20+i*480/(a.length-1)}" y="229">${v}</text>`).join('')}</g></svg>`;}
-function patterns(){content().innerHTML=topHeading('Connect your dots.','A different way to look at your days.','ILLUSTRATIVE DATA')+`<p class="insights-banner">This is a preview of future insights. These examples use fictional data, not your entries. Real personal patterns need saved history, which isn’t available yet.</p><div class="insights-grid"><section class="app-card"><div class="card-heading"><h2>The shape of a ${period==='week'?'week':'month'}</h2><div class="period-tabs" aria-label="Sample period"><button data-period="week" aria-pressed="${period==='week'}">7 days</button><button data-period="month" aria-pressed="${period==='month'}">30 days</button></div></div><p>Example daily reflections · 1 depleted to 5 really good</p>${chart()}<p class="small-note">Your feelings aren’t a score to improve. They’re something to notice.</p></section><section class="app-card"><p class="eyebrow">SAMPLE OBSERVATION</p><h2 class="insight-card-title">A walk. A little light.<br><em>A different day.</em></h2><p class="insight-detail">In this fictional example, days with time outside were often followed by a brighter evening reflection.</p><div class="metric-line"><span>Evening mood on walking days</span><strong>4.3 <small>/ 5</small></strong></div><div class="metric-line"><span>Evening mood on other days</span><strong>3.2 <small>/ 5</small></strong></div><p class="field-help">Illustrative averages. A link does not establish a cause.</p></section><section class="app-card full-width"><div class="card-heading"><h2>A gentle weekly review</h2><span class="page-tag">TRY IT</span></div><p>What gave you energy? What drained you? What’s one small thing you’d like to try next week?</p><form id="weekly-form"><label class="field-label weekly-label" for="weekly-note">Your reflection</label><textarea class="text-area" id="weekly-note" name="weekly-note" maxlength="1200" autocomplete="off" spellcheck="false" placeholder="This week, I noticed…">${esc(state.weeklyNote)}</textarea><button class="button weekly-button" type="submit">Keep for this visit <span>↗</span></button><p class="field-help">This note stays in memory only and disappears on refresh.</p></form></section></div>`;}
-function recipe(){content().innerHTML=topHeading('Your own kind of good.','A glimpse of what 30 days of noticing could reveal.','SAMPLE RECIPE')+`<p class="insights-banner">This recipe is an example, not a personalized recommendation. The full release is planned to learn from your reflections after 30 days. Nothing here is calculated from this preview.</p><section class="recipe-hero"><span class="thought-icon" aria-hidden="true">☼</span><p class="eyebrow">THE INGREDIENTS OF A GOOD DAY</p><h2>Simple things.<br><em>A little more often.</em></h2><p>Sometimes the things that help us feel like ourselves have been there all along. We just needed a little space to notice.</p><div class="recipe-ingredients"><article class="ingredient">${icon('walk')}<h3>A little outside.</h3><p>A slow walk and a change of scene.</p></article><article class="ingredient">${icon('moon')}<h3>Room to rest.</h3><p>An evening with a little less rushing.</p></article><article class="ingredient">${icon('talk')}<h3>A real connection.</h3><p>A conversation with room to listen.</p></article></div><p class="small-note">Illustrative associations, not medical advice or promises.</p></section><div class="connection-row recipe-note">${icon('recipe')}<div><h3>Your recipe will be yours alone.</h3><p>Personal insights and saved history are planned for the full release.</p></div></div>`;}
-function settings(){content().innerHTML=topHeading('Make it yours.','Your preferences. Your pace.')+`<div class="settings-grid"><section class="app-card"><div class="card-heading"><h2>Your space</h2></div><div class="setting-row"><label for="setting-name">What we call you</label><input class="text-input" id="setting-name" data-setting="name" maxlength="40" value="${esc(state.name)}" autocomplete="off" placeholder="Your name"></div><div class="setting-row"><label for="setting-becoming">Making room to be</label><select class="select-input" id="setting-becoming" data-setting="becoming"><option value="">Choose a feeling</option>${setupQuestions[1].choices.map(v=>`<option ${state.becoming===v?'selected':''}>${v}</option>`).join('')}</select></div><div class="setting-row"><label for="setting-style">How you like to reflect</label><select class="select-input" id="setting-style" data-setting="reflectionStyle">${setupQuestions[3].choices.map(v=>`<option ${state.reflectionStyle===v?'selected':''}>${v}</option>`).join('')}</select></div><p class="field-help">Preferences stay only in this visit. Paper scanning is planned.</p></section><section class="app-card"><div class="card-heading"><h2>Daily rituals</h2><span class="page-tag">UP TO 8</span></div><p>Keep what matters to you. Let the rest go.</p>${habitsMarkup(true)}<form id="habit-form" class="habit-form"><label for="habit-name" class="sr-only">Add a custom habit</label><input class="text-input" id="habit-name" name="habit" placeholder="A habit of your own" maxlength="60" autocomplete="off"><button class="button" type="submit" ${state.habits.length>=8?'disabled':''}>Add</button></form><p id="habit-error" class="form-error" role="status"></p></section><section class="app-card"><div class="card-heading"><h2>A gentle nudge</h2><span class="page-tag">PREFERENCE PREVIEW</span></div><p>These controls preview future reminder settings. No notifications are scheduled or sent.</p><div class="setting-row"><label for="morning-time">Your morning moment</label><input class="time-input" id="morning-time" type="time" data-setting="reminderMorning" value="${esc(state.reminderMorning)}"></div><div class="setting-row"><label for="evening-time">Your evening reflection</label><input class="time-input" id="evening-time" type="time" data-setting="reminderEvening" value="${esc(state.reminderEvening)}"></div><p class="field-help">At most two gentle reminders a day are planned for the full app.</p></section><section class="app-card"><div class="card-heading"><h2>Private, by design</h2></div><div class="setting-row"><div><h3>Only in this open page</h3><p>No account, database, analytics, or saved journal history. Refreshing or leaving the app clears your entries.</p></div></div><div class="setting-row"><div><h3>No photo or health access</h3><p>Camera scanning, device health data, and personal insights are future features.</p></div></div><div class="setting-row"><div><h3>A fresh start</h3><p>Clear everything from this preview session.</p></div><button class="button outline" data-action="reset">Clear this preview ↗</button></div></section><div class="connection-row">${icon('sun')}<div><h3>Coming soon to iPhone and Android, too.</h3><p>This web preview is your first look. Store releases and dates are not announced yet.</p></div></div></div>`;}
-function toast(message){clearTimeout(toastTimer);const el=document.querySelector('#toast');el.textContent=message;el.hidden=false;toastTimer=setTimeout(()=>{el.hidden=true;},4500);}
-function rememberFocus(selector){render();root.querySelector(selector)?.focus({preventScroll:true});}
-root.addEventListener('click',event=>{
-  const button=event.target.closest('button');if(!button)return;
-  if(button.dataset.view){state.view=button.dataset.view;screen='app';flow=null;render(true);return;}
-  if(button.dataset.theme){state.mode=button.dataset.theme;render();return;}
-  if(button.dataset.start){startFlow(button.dataset.start);return;}
-  if(button.dataset.habit){toggleHabit(state,button.dataset.habit);rememberFocus(`[data-habit="${button.dataset.habit}"]`);return;}
-  if(button.dataset.removeHabit){state.habits=state.habits.filter(h=>h.id!==Number(button.dataset.removeHabit));render();document.querySelector('#habit-name')?.focus({preventScroll:true});return;}
-  if(button.dataset.water){changeWater(state,Number(button.dataset.water));rememberFocus(`[data-water="${button.dataset.water}"]`);return;}
-  if(button.dataset.period){period=button.dataset.period;rememberFocus(`[data-period="${period}"]`);return;}
-  if(button.dataset.answer){flow.answers.mood=Number(button.dataset.answer);rememberFocus(`[data-answer="${button.dataset.answer}"]`);return;}
-  if(button.dataset.choice){const q=flow.questions[flow.index];flow.answers[q.key]=button.dataset.choice;render();[...root.querySelectorAll('[data-choice]')].find(el=>el.dataset.choice===button.dataset.choice)?.focus({preventScroll:true});return;}
-  if(button.dataset.setupHabit){const habit=button.dataset.setupHabit;const selected=flow.answers.habits||[];if(selected.includes(habit))flow.answers.habits=selected.filter(h=>h!==habit);else if(selected.length<3)flow.answers.habits=[...selected,habit];else{toast('Choose up to three for now. You can add more in My space.');return;}render();[...root.querySelectorAll('[data-setup-habit]')].find(el=>el.dataset.setupHabit===habit)?.focus({preventScroll:true});return;}
-  switch(button.dataset.action){case 'setup':startFlow('setup');break;case 'skip-setup':case 'exit-flow':screen='app';state.view='today';flow=null;render(true);break;case 'flow-back':flow.index=Math.max(0,flow.index-1);render(true);break;case 'reset':document.querySelector('#reset-dialog').showModal();break;}
+function patterns() {
+  const n = ui.period;
+  const values = series(n);
+  const labels = values.map((_, i) => n === 7 ? new Intl.DateTimeFormat(undefined, {weekday: 'short'}).format(new Date(Date.now() - (n - 1 - i) * 864e5)) : `Day ${i + 1}`);
+  const avg = (values.reduce((a, b) => a + b, 0) / n).toFixed(1);
+  const best = Math.max(...values).toFixed(1);
+  return `${topBar('Patterns', 'Illustrative sample data. Associations, never diagnoses.')}
+  <div class="dash">
+    <section class="tile span-8" aria-labelledby="trend-title"><div class="tile-head"><div><p class="eyebrow">Sample trend</p><h2 id="trend-title">Mood over ${n} days</h2></div>
+      <div class="segmented" role="group" aria-label="Period">${[7, 30].map(p => `<button data-action="period" data-period="${p}" aria-pressed="${n === p}">${p} days</button>`).join('')}</div></div>
+      <div class="chart-wrap">${chartSvg(values, labels, 'trend')}</div></section>
+    <section class="tile span-4 stat-tile"><div><p class="eyebrow">Average</p><p class="num">${avg}</p><p>out of 5 · best day ${best}</p></div></section>
+    <section class="tile span-4"><p class="eyebrow">What lifts you</p><h2>Fresh air.</h2><p>In this sample, days with a walk scored higher.</p><div class="week">${[62, 70, 96, 74, 92, 66, 98].map(h => `<div class="week-bar"><i data-h="${h}"></i></div>`).join('')}</div></section>
+    <section class="tile span-4"><p class="eyebrow">Sleep and mood</p><h2>Early nights help.</h2><p>Sample nights over 7 hours sit next to steadier mornings.</p></section>
+    <section class="tile span-4"><p class="eyebrow">People</p><h2>Conversations count.</h2><p>Sample days with a real conversation felt warmer.</p></section>
+  </div>`;
+}
+
+/* ───────────── recipe ───────────── */
+function recipe() {
+  return `${topBar('My recipe', 'A sample 30-day “recipe” for your good days. Real personal recipes come later.')}
+  <div class="dash"><section class="tile span-12 hero-tile"><div><p class="eyebrow">Your good-day recipe · sample</p><h2>A walk, a good talk, and an early night.</h2><p>Built from 30 days of example reflections.</p></div><div class="day-orb" aria-hidden="true"><span class="ring"></span><span class="core"></span></div></section>
+  <section class="tile span-12"><div class="recipe-grid">
+    <div class="ingredient tilt"><strong>4×</strong><p>more good days with time outside</p></div>
+    <div class="ingredient tilt"><strong>7h+</strong><p>of sleep before your best mornings</p></div>
+    <div class="ingredient tilt"><strong>2</strong><p>real conversations a week, at least</p></div>
+  </div></section></div>`;
+}
+
+/* ───────────── settings ───────────── */
+function settings() {
+  const sw = (action, on, label) => `<button class="switch" role="switch" aria-checked="${on}" data-action="${action}" aria-label="${label}"></button>`;
+  return `${topBar('My space', 'Make it feel like yours. Preferences stay in this open page only.')}
+  <div class="dash"><div class="span-7 settings-list">
+    <div class="setting"><div><b>Your name</b><span>For a friendlier hello.</span></div><div class="add-habit"><label class="sr-only" for="pref-name">Your name</label><input id="pref-name" maxlength="40" value="${esc(state.name)}" placeholder="Name or nickname"><button class="small-button" data-action="save-name">Save</button></div></div>
+    <div class="setting"><div><b>Reflections</b><span>Which bookends you want.</span></div><label class="sr-only" for="pref-style">Reflection style</label><select id="pref-style" data-action="style">${['Both', 'Morning only', 'Evening only'].map(o => `<option ${state.reflectionStyle === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div class="setting"><div><b>Sounds</b><span>Soft pops and chimes.</span></div>${sw('sound', ui.sound, 'Sounds')}</div>
+    <div class="setting"><div><b>Night look</b><span>Warm and dark for evenings.</span></div>${sw('theme', ui.theme === 'night', 'Night look')}</div>
+    <div class="setting"><div><b>Reminders</b><span>Morning ${esc(state.reminderMorning)} · evening ${esc(state.reminderEvening)} (planned for the apps)</span></div></div>
+    <div class="setting"><div><b>Start fresh</b><span>Clear everything in this preview.</span></div><button class="small-button soft" data-action="reset">Clear</button></div>
+  </div>
+  <section class="tile span-5 hero-tile"><div><p class="eyebrow">Built &amp; secured with</p><h2>Orso Solutions × OTORO</h2><p>No trackers, no third-party calls, nothing saved. Privacy by design.</p><a class="button light" href="https://otoro.si" target="_blank" rel="noopener noreferrer">Meet OTORO <span aria-hidden="true">↗</span></a></div></section></div>`;
+}
+
+/* ───────────── reflection flow (one question per screen) ───────────── */
+const STEPS = {
+  morning: [
+    {key: 'mood', q: 'How’s your headspace this morning?'},
+    {key: 'intention', q: 'How do you want to show up today?', ph: 'Be here for the small things.'},
+    {key: 'gratitude', q: 'One thing you’re grateful for?', ph: 'Coffee that’s still warm.'},
+    {key: 'great', q: 'What would make today great?', ph: 'A walk before lunch.'},
+    {key: 'mustDo', q: 'One thing that has to get done?', ph: 'Call the dentist.'}
+  ],
+  evening: [
+    {key: 'mood', q: 'How are you feeling tonight?'},
+    {key: 'body', q: 'How does your body feel?', ph: 'Tired legs, good tired.'},
+    {key: 'mind', q: 'What’s on your mind?', ph: 'Tomorrow’s meeting.'},
+    {key: 'good', q: 'Three good things from today?', ph: 'Sun on the walk, a kind text, dinner.'},
+    {key: 'word', q: 'One word for today?', ph: 'Grounded'},
+    {key: 'promise', q: 'A small promise for tomorrow?', ph: 'Phone stays out of the bedroom.'}
+  ]
+};
+function startFlow(mode) {
+  const prev = state[mode];
+  ui.flow = {mode, step: 0, draft: prev ? {...prev} : {}};
+  ui.lastFocus = document.activeElement;
+  sound('open');
+  renderFlow();
+}
+function renderFlow() {
+  document.querySelector('.flow')?.remove();
+  const f = ui.flow; if (!f) return;
+  const steps = STEPS[f.mode], s = steps[f.step], last = f.step === steps.length - 1;
+  const body = s.key === 'mood'
+    ? `<div class="mood-row" role="group" aria-label="Mood">${MOODS.map((m, i) => `<button class="mood-button" data-flow="mood" data-mood="${i + 1}" aria-pressed="${f.draft.mood === i + 1}"><span aria-hidden="true">${FACES[i]}</span>${m}</button>`).join('')}</div>`
+    : `<label class="sr-only" for="flow-input">${s.q}</label><textarea id="flow-input" maxlength="1200" placeholder="${esc(s.ph)}">${esc(f.draft[s.key] || '')}</textarea>`;
+  const el = document.createElement('div');
+  el.className = 'flow';
+  el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'flow-q');
+  el.innerHTML = `<div class="flow-card"><div class="flow-progress" aria-hidden="true">${steps.map((_, i) => `<i class="${i <= f.step ? 'on' : ''}"></i>`).join('')}</div>
+    <p class="eyebrow">${f.mode === 'morning' ? '☼ Morning check-in' : '☾ Evening reflection'} · ${f.step + 1} of ${steps.length}</p>
+    <h2 id="flow-q">${s.q}</h2>${body}
+    <div class="flow-actions"><button class="plain-button" data-flow="${f.step ? 'back' : 'close'}">${f.step ? '← Back' : 'Not now'}</button>
+    <span>${s.key !== 'mood' && !last ? '<button class="plain-button" data-flow="skip">Skip</button> ' : ''}<button class="button" data-flow="next">${last ? 'Finish' : 'Next'} <span aria-hidden="true">↗</span></button></span></div></div>`;
+  document.body.append(el);
+  (el.querySelector('textarea') || el.querySelector('.mood-button[aria-pressed="true"]') || el.querySelector('.mood-button'))?.focus();
+}
+function keepDraft() {
+  const f = ui.flow, s = STEPS[f.mode][f.step];
+  const input = document.querySelector('#flow-input');
+  if (input) f.draft[s.key] = input.value;
+}
+function flowAction(action, target) {
+  const f = ui.flow; if (!f) return;
+  const steps = STEPS[f.mode];
+  if (action === 'mood') { f.draft.mood = Number(target.dataset.mood); sound('tick'); renderFlow(); return; }
+  if (action === 'close') { ui.flow = null; document.querySelector('.flow')?.remove(); ui.lastFocus?.focus?.(); return; }
+  keepDraft();
+  if (action === 'back') { f.step--; renderFlow(); return; }
+  if (steps[f.step].key === 'mood' && !f.draft.mood) { toast('Pick how you feel first.', '☺'); return; }
+  if (f.step < steps.length - 1) { f.step++; sound('tick'); renderFlow(); return; }
+  try { submitReflection(state, f.mode, f.draft); } catch (error) { toast(error.message, '!'); return; }
+  const mode = f.mode;
+  ui.flow = null;
+  document.querySelector('.flow')?.remove();
+  render();
+  sound('chime'); confetti();
+  achieve(mode === 'morning' ? 'morning' : 'evening', mode === 'morning' ? 'Morning check-in done' : 'Evening reflection done', mode === 'morning' ? 'A good place to start.' : 'Tomorrow is a new page.', mode === 'morning' ? '☼' : '☾');
+  if (state.morning && state.evening) setTimeout(() => achieve('both', 'Both bookends today', 'A full day, in your words.', '✳'), 1400);
+}
+
+/* ───────────── pop-ups ───────────── */
+function toast(text, mark = '✓') {
+  const el = document.querySelector('#toast');
+  el.innerHTML = `<b aria-hidden="true">${esc(mark)}</b><span>${esc(text)}</span>`;
+  el.hidden = false;
+  el.classList.remove('toast'); void el.offsetWidth; el.classList.add('toast');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+function achieve(id, title, note, mark) {
+  if (ui.earned.has(id)) return;
+  ui.earned.add(id);
+  const el = document.createElement('div');
+  el.className = 'achievement'; el.setAttribute('role', 'status');
+  el.innerHTML = `<b aria-hidden="true">${mark}</b><div>${esc(title)}<small>${esc(note)}</small></div>`;
+  document.body.append(el);
+  setTimeout(() => el.remove(), 4300);
+}
+function confetti() {
+  if (reduced) return;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'confetti'; canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio;
+  document.body.append(canvas);
+  const ctx = canvas.getContext('2d'), colors = ['#e2a54a', '#c8714a', '#8f9d72', '#b9844f', '#f6dcae', '#6a4a33'];
+  const parts = [...Array(140)].map(() => ({x: canvas.width / 2, y: canvas.height * .35, vx: (Math.random() - .5) * 26, vy: -Math.random() * 22 - 6, s: (Math.random() * 7 + 5) * devicePixelRatio, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: colors[Math.random() * colors.length | 0]}));
+  let frame = 0;
+  (function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const p of parts) { p.vy += .6; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .66); ctx.restore(); }
+    if (++frame < 140) requestAnimationFrame(tick); else canvas.remove();
+  })();
+}
+
+/* ───────────── chart tooltips + tilt ───────────── */
+function wireChart(scope) {
+  scope.querySelectorAll('.chart .point').forEach(point => {
+    const show = () => {
+      scope.querySelector('.chart-tip')?.remove();
+      const wrap = point.closest('.tile'), r = point.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      const tip = document.createElement('div');
+      tip.className = 'chart-tip'; tip.textContent = point.dataset.tip;
+      tip.style.left = `${r.left - w.left + r.width / 2}px`; tip.style.top = `${r.top - w.top}px`;
+      wrap.append(tip); sound('tick');
+    };
+    point.addEventListener('pointerenter', show); point.addEventListener('focus', show);
+    point.addEventListener('pointerleave', () => scope.querySelector('.chart-tip')?.remove());
+    point.addEventListener('blur', () => scope.querySelector('.chart-tip')?.remove());
+  });
+  if (reduced || !matchMedia('(pointer: fine)').matches) return;
+  scope.querySelectorAll('.tile, .tilt').forEach(card => {
+    card.classList.add('tilt');
+    card.addEventListener('pointermove', event => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--ry', `${(((event.clientX - r.left) / r.width - .5) * 5).toFixed(2)}deg`);
+      card.style.setProperty('--rx', `${(-((event.clientY - r.top) / r.height - .5) * 5).toFixed(2)}deg`);
+    });
+    card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+  });
+}
+
+/* ───────────── events ───────────── */
+root.addEventListener('click', event => {
+  const viewButton = event.target.closest('[data-view]');
+  if (viewButton) { ui.view = viewButton.dataset.view; sound('tick'); render(true); scrollTo(0, 0); return; }
+  const btn = event.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  if (action === 'flow') startFlow(btn.dataset.mode);
+  else if (action === 'mood') { ui.quickMood = Number(btn.dataset.mood); sound('pop'); render(); toast(`Noted: ${MOODS[ui.quickMood - 1]}.`, FACES[ui.quickMood - 1]); }
+  else if (action === 'habit') {
+    toggleHabit(state, btn.dataset.id);
+    const done = state.habits.find(h => h.id === Number(btn.dataset.id))?.done;
+    sound(done ? 'pop' : 'undo'); render();
+    if (done) achieve('first-habit', 'First habit ticked', 'Small steps count.', '✓');
+    if (state.habits.length && habitsDone() === state.habits.length) { confetti(); sound('chime'); achieve('all-habits', 'Every habit, done', 'Look at you go.', '★'); }
+  } else if (action === 'add-habit') {
+    const input = root.querySelector('#new-habit');
+    if (addHabit(state, input.value)) { sound('pop'); render(); toast('Habit added.'); root.querySelector('#new-habit')?.focus(); }
+    else toast(state.habits.length >= 8 ? 'Up to 8 habits in the preview.' : 'Try a new, non-empty habit name.', '!');
+  } else if (action === 'water') {
+    const before = state.water;
+    changeWater(state, Number(btn.dataset.amount));
+    if (state.water !== before) { sound(state.water > before ? 'water' : 'undo'); render(); }
+    if (state.water >= WATER_GOAL && before < WATER_GOAL) { confetti(); achieve('water', 'Hydrated', `${WATER_GOAL} glasses today.`, '💧'); }
+  } else if (action === 'period') { ui.period = Number(btn.dataset.period); sound('tick'); render(); }
+  else if (action === 'sound') { ui.sound = !ui.sound; render(); sound('pop'); toast(ui.sound ? 'Sounds on.' : 'Sounds off.', ui.sound ? '♪' : '♩'); }
+  else if (action === 'theme') { ui.theme = ui.theme === 'night' ? 'day' : 'night'; sound('open'); render(); }
+  else if (action === 'save-name') { state.name = root.querySelector('#pref-name').value.trim().slice(0, 40); sound('pop'); render(); toast(state.name ? `Nice to meet you, ${state.name}.` : 'Name cleared.'); }
+  else if (action === 'save-note') { state.weeklyNote = root.querySelector('#weekly-note').value.slice(0, 1200); sound('pop'); toast('Note kept for this session.'); }
+  else if (action === 'reset') document.querySelector('#reset-dialog').showModal();
 });
-root.addEventListener('input',event=>{const el=event.target;if(el.dataset.field&&flow)flow.answers[el.dataset.field]=el.value;if(el.dataset.setting){state[el.dataset.setting]=el.value.slice(0,el.dataset.setting==='name'?40:60);}if(el.id==='weekly-note')state.weeklyNote=el.value;});
-root.addEventListener('change',event=>{const el=event.target;if(el.dataset.setting){state[el.dataset.setting]=el.value;toast('Updated for this visit only.');}});
-root.addEventListener('submit',event=>{event.preventDefault();if(event.target.id==='flow-form')advanceFlow();if(event.target.id==='habit-form'){const input=document.querySelector('#habit-name');if(addHabit(state,input.value)){render();document.querySelector('#habit-name').focus();toast('A little ritual, added for this visit.');}else document.querySelector('#habit-error').textContent='Add a new habit name. You can keep up to eight rituals here.';}if(event.target.id==='weekly-form')toast('Your note is here for this visit. Nothing is saved permanently.');});
-document.querySelector('#accept-preview').addEventListener('click',()=>{document.querySelector('#app-notice').close();content().querySelector('h1')?.focus({preventScroll:true});});
-document.querySelector('#cancel-reset').addEventListener('click',()=>document.querySelector('#reset-dialog').close());
-document.querySelector('#confirm-reset').addEventListener('click',()=>{document.querySelector('#reset-dialog').close();state=createState();flow=null;screen='app';period='week';render(true);toast('A fresh page. Everything from this visit has been cleared.');});
-// Avoid restoring personal entries from the browser's back/forward page cache.
-window.addEventListener('pagehide',()=>{state=createState();flow=null;screen='app';period='week';root.querySelectorAll('input,textarea').forEach(el=>{el.value='';});root.replaceChildren();clearTimeout(toastTimer);});
-window.addEventListener('pageshow',event=>{if(event.persisted){render();document.querySelector('#app-notice').showModal();}});
+root.addEventListener('change', event => {
+  if (event.target.matches('[data-action="style"]')) { state.reflectionStyle = event.target.value; sound('tick'); toast(`Reflections: ${state.reflectionStyle}.`); }
+});
+root.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && event.target.id === 'new-habit') root.querySelector('[data-action="add-habit"]').click();
+});
+document.addEventListener('click', event => {
+  const flowBtn = event.target.closest('[data-flow]');
+  if (flowBtn) flowAction(flowBtn.dataset.flow, flowBtn);
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && ui.flow) flowAction('close');
+});
+document.querySelector('#confirm-reset').addEventListener('click', () => {
+  state = createState(); ui = {...freshUi(), sound: ui.sound};
+  document.querySelector('#reset-dialog').close(); sound('open'); render(true); toast('A fresh page.', '↺');
+});
+document.querySelector('#cancel-reset').addEventListener('click', () => document.querySelector('#reset-dialog').close());
+document.querySelector('#accept-preview').addEventListener('click', () => {
+  document.querySelector('#app-notice').close(); state.onboarded = true; sound('chime'); toast('Welcome. Make yourself at home.', '✳');
+});
+// A page restored from the back/forward cache starts fresh (nothing is kept between visits).
+addEventListener('pageshow', event => { if (event.persisted) { state = createState(); ui = freshUi(); render(); } });
+
 render();
 document.querySelector('#app-notice').showModal();
