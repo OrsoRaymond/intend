@@ -2,7 +2,7 @@
 
 **More life. Less noise.**
 
-Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Warm tan, caramel and espresso palette, bold locally hosted Manrope typography, dimensional 3D-style cards that lean toward the pointer, pop-in sections, a 3D journal and phone hero, and soft generated sound effects (Web Audio, no files, no network). The app preview is a dimensional daily dashboard: progress ring, quick mood check, habits, a water glass that fills, a mood chart with tooltips, one-question-per-screen reflections, achievement pop-ups and confetti, day and night looks.
+Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Editorial and calm: limewash, travertine and bronze, Fraunces serif headlines with Manrope text, the brand photograph full-bleed in the hero, line icons only (no emoji or symbol glyphs), gentle depth and scroll reveals, and quiet generated sounds. The app preview is a calm daily dashboard: intention, progress ring, a 1 to 5 mood scale, habits, eight water glasses, a mood chart with tooltips, one-question reflections, quiet milestone notes, and a day and evening look.
 
 ## Run
 
@@ -77,6 +77,6 @@ This release is ready to demonstrate **as a mock preview**. It is not the data-s
 
 Product vision supplied by the project owner, attributed in the brief to Jeannette Breitfuss. Built and secured with Orso Solutions × [OTORO](https://otoro.si). These credits are not a representation of an independent audit.
 
-`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Manrope is hosted locally in `dist/assets/fonts/manrope-variable.ttf`, with its SIL Open Font License in `dist/assets/fonts/OFL.txt`. Font source: https://github.com/google/fonts/tree/main/ofl/manrope. No third-party font calls are made.
+`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Manrope and Fraunces are hosted locally in `dist/assets/fonts/` (`manrope-variable.ttf`, `fraunces-variable.ttf`), each under the SIL Open Font License (`OFL.txt`, `OFL-fraunces.txt`). Font source: https://github.com/google/fonts/tree/main/ofl/manrope. No third-party font calls are made.
 
 Privacy implementation reference: [FTC mobile health app developer guidance](https://www.ftc.gov/business-guidance/resources/mobile-health-app-developers-ftc-best-practices), consulted October 17, 2026.
