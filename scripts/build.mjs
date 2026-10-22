@@ -20,13 +20,13 @@ await writeFile(path.join(root,'dist','robots.txt'),`User-agent: *\nAllow: /\nDi
 await writeFile(path.join(root,'dist','sitemap.xml'),`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/','/privacy/','/terms/'].map(route=>`<url><loc>${origin}${route}</loc></url>`).join('')}</urlset>\n`);
 // Version browser assets so existing visitors receive each deployed redesign.
 const revisions={};
-for(const asset of ['styles.css','site.js','app.js']){
+for(const asset of ['styles.css','app.css','site.js','app.js']){
   const bytes=await readFile(path.join(root,'dist','assets',asset));
   revisions[asset]=createHash('sha256').update(bytes).digest('hex').slice(0,12);
 }
 for(const file of ['index.html','app/index.html','privacy/index.html','terms/index.html','404.html']){
   const location=path.join(root,'dist',file);
   const html=await readFile(location,'utf8');
-  await writeFile(location,html.replace(/(\/(?:assets)\/(styles\.css|site\.js|app\.js))(?:\?v=[a-z0-9]+)?/g,(_,url,asset)=>`${url}?v=${revisions[asset]}`));
+  await writeFile(location,html.replace(/(\/(?:assets)\/(styles\.css|app\.css|site\.js|app\.js))(?:\?v=[a-z0-9]+)?/g,(_,url,asset)=>`${url}?v=${revisions[asset]}`));
 }
 console.log('Static site ready in dist/. No bundler or runtime dependencies.');

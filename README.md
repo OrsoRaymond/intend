@@ -2,7 +2,7 @@
 
 **More life. Less noise.**
 
-Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Editorial and calm: limewash, travertine and bronze, Fraunces serif headlines with Manrope text, the brand photograph full-bleed in the hero, line icons only (no emoji or symbol glyphs), gentle depth and scroll reveals, and quiet generated sounds. The app preview is a calm daily dashboard: intention, progress ring, a 1 to 5 mood scale, habits, eight water glasses, a mood chart with tooltips, one-question reflections, quiet milestone notes, and a day and evening look.
+Intend's companion website and interactive app preview, based on the supplied October 14, 2026 product vision. Editorial and calm: limewash, travertine and bronze, Instrument Serif headlines with Geist text, the brand photograph full-bleed in the hero, line icons only (no emoji or symbol glyphs), gentle depth and scroll reveals, and quiet generated sounds. The app preview is a calm daily dashboard: intention, progress ring, a 1 to 5 mood scale, habits, eight water glasses, a mood chart with tooltips, one-question reflections, quiet milestone notes, and a day and evening look.
 
 ## Run
 
@@ -35,6 +35,7 @@ npm run check
 - Morning intention and evening reflection; edit them from the Journal.
 - Mood selections, gratitude, daily priorities, movement, three good things, and a word for the day.
 - Custom habits, check/uncheck, removal, and water logging.
+- Today dashboard: a sky that follows the time of day, activity rings, a mood scale, and a glass that fills with animated water (pour, splash, waves) and a generated pouring sound. Taps update only what changed, so the page never flashes or reloads.
 - Day and dark appearance, responsive dashboard cards, floating mobile navigation, keyboard controls, and reduced-motion support.
 - Weekly reflection note; illustrative 7/30-day patterns and sample 30-day recipe.
 - Preference controls, clear-preview confirmation, mobile navigation, legal links.
@@ -66,10 +67,12 @@ This release is ready to demonstrate **as a mock preview**. It is not the data-s
 ## Project structure
 
 - `dist/index.html`: semantic, pre-rendered website content.
-- `dist/assets/styles.css`: shared responsive design system.
+- `dist/assets/styles.css`: shared responsive design system (website, legal pages, fonts).
+- `dist/assets/app.css`: the app dashboard design, day and evening looks, and animations.
 - `dist/assets/site.js`: website dialogs, navigation, story controls, and motion.
 - `dist/assets/state.js`: small, pure app state operations.
-- `dist/assets/app.js`: app views, forms, navigation, and ephemeral session behavior.
+- `dist/assets/app.js`: app views, forms, navigation, and ephemeral session behavior. Views are morphed onto the page so only changed parts update.
+- `dist/assets/sound.js`: soft sounds synthesised with the Web Audio API. The water pour plays `dist/assets/sounds/pour.mp3`, with a generated pour as a fallback.
 - `scripts/`: no-dependency server, metadata build, and static verification.
 - `tests/`: state isolation, reflection validation, habits, hydration bounds, and escaping.
 
@@ -77,6 +80,8 @@ This release is ready to demonstrate **as a mock preview**. It is not the data-s
 
 Product vision supplied by the project owner, attributed in the brief to Jeannette Breitfuss. Built and secured with Orso Solutions × [OTORO](https://otoro.si). These credits are not a representation of an independent audit.
 
-`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Manrope and Fraunces are hosted locally in `dist/assets/fonts/` (`manrope-variable.ttf`, `fraunces-variable.ttf`), each under the SIL Open Font License (`OFL.txt`, `OFL-fraunces.txt`). Font source: https://github.com/google/fonts/tree/main/ofl/manrope. No third-party font calls are made.
+`dist/assets/quiet-room.webp` is an original image generated with the built-in image-generation tool for this project. Prompt: an editorial architectural photograph of an espresso linen journal on travertine in an ivory limewash room, with a brass sun ornament, olive branch, and soft morning shadows; no text, logos, or people. The asset was encoded to WebP for delivery. The dimensional phone, decorative shapes, and interface are HTML/CSS; icons are inline SVG. Instrument Serif and Geist are hosted locally in `dist/assets/fonts/` (`instrument-serif.woff2`, `instrument-serif-italic.woff2`, `geist-variable.woff2`, Latin subsets from Fontsource), each under the SIL Open Font License (`OFL-instrument-serif.txt`, `OFL-geist.txt`). Font sources: https://github.com/google/fonts/tree/main/ofl/instrumentserif and https://github.com/google/fonts/tree/main/ofl/geist. No third-party font calls are made.
+
+`dist/assets/sounds/pour.mp3` is a pouring-water recording supplied by the project owner (original file name `freesound_community-pouring-glass-of-water-104819.mp3`, which suggests the Pixabay user freesound_community; confirm its licence before a commercial release).
 
 Privacy implementation reference: [FTC mobile health app developer guidance](https://www.ftc.gov/business-guidance/resources/mobile-health-app-developers-ftc-best-practices), consulted October 17, 2026.
